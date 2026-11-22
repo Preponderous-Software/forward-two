@@ -1,0 +1,71 @@
+# Runs the unit tests (world, simulation, multiplayer server, ghosts, audio
+# manifest), boots the game in headless Chromium, and deploys web/ to the
+# arcade as https://forward-two.play.danielstephenson.dev
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Tests and browser boot
+    runs-on: ubuntu-24.04
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Install Playwright and Chromium
+        run: |
+          npm i --no-save playwright@1.61.1
+          npx playwright install --with-deps chromium
+
+      - name: Boot the game and take a still
+        run: |
+          mkdir -p smoke-out
+          node server/main.js --static web --port 8790 > server.log 2>&1 &
+          sleep 1
+          node tools/shot.cjs "http://127.0.0.1:8790/?world=small&quality=1&new=1&nosave=1&skip=1" smoke-out/boot.png 10 1280 720 | tee smoke-out/console.txt
+          ! grep -q "pageerror" smoke-out/console.txt
+
+      - name: Upload the still
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: boot
+          path: smoke-out/
+          if-no-files-found: ignore
+
+  deploy:
+    name: Deploy to the arcade
+    needs: test
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && vars.ARCADE_ENABLED == 'true')
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Write the deploy version
+        run: echo "$(node -p "require('./package.json').version")+g${GITHUB_SHA::7}" > "$RUNNER_TEMP/arcade-version.txt"
+
+      - uses: Stephenson-Software/arcade-deploy@v1
+        with:
+          slug: forward-two
+          token: ${{ secrets.ARCADE_TOKEN }}
+          site-dir: web
+          version-file: ${{ runner.temp }}/arcade-version.txt
