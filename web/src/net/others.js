@@ -14,7 +14,7 @@ const DELAY_MS = 150;
 const EXTRAPOLATE_MS = 300;
 const EMOTE_S = 3;
 const LABEL_RANGE = 260;
-const KINDS = new Set(["raft", "kayak", "canoe", "dory"]);
+const KINDS = new Set(["raft", "kayak", "canoe", "dory", "walker"]);
 const TURN = Math.PI * 2;
 const wrap = (a) => a - TURN * Math.floor((a + Math.PI) / TURN);
 
@@ -191,7 +191,7 @@ export class Others {
         const s = sampleAt(gh.decoded, tMs + t0);
         const end = gh.decoded[gh.decoded.length - 1].t - t0;
         if (!s || tMs < 0 || tMs > end + 3000) { this.release(owner); continue; }
-        const e = this.acquire(owner, KINDS.has(me?.kind) ? me.kind : "kayak", gh.colour, true);
+        const e = this.acquire(owner, KINDS.has(me?.kind) && me.kind !== "walker" ? me.kind : "kayak", gh.colour, true);
         if (!e) continue;
         let y = me?.y ?? 0;
         try { if (g.world) y = waterAt(g.world, s.x, s.z); } catch { /* keep fallback */ }

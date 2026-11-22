@@ -118,11 +118,14 @@ export class Places {
     }
     for (const s of [-1, 1]) { const [px, pz] = P(11.5, s * 1.25); b.box(px, c.level, pz, 0.12, 1.1, 0.12, WOOD_D, yaw); }
     // Tents or a lodge.
+    c.obstacles = [];
+    c.P = P; c.yaw = yaw;
     const big = c.id === "lodge" || c.id === "mill" || c.id === "town" || c.id === "tarn";
     if (big) {
       const [hx, hz] = P(-5, 0);
       const wall = c.id === "tarn" ? STONE : c.id === "town" ? [0.85, 0.82, 0.74] : WOOD;
       b.box(hx, y + 1.4, hz, 3.2, 1.6, 2.6, wall, yaw);
+      c.obstacles.push({ x: hx, z: hz, r: 3.4 });
       this.roof(b, hx, y + 3.0, hz, 3.5, 2.9, 1.8, c.id === "town" ? [0.3, 0.32, 0.4] : ROOF, yaw);
       const [dx, dz] = P(-1.75, 0); b.box(dx, y + 0.9, dz, 0.06, 0.9, 0.55, WOOD_D, yaw);
       const [wx, wz] = P(-1.75, 1.6); b.box(wx, y + 1.7, wz, 0.07, 0.35, 0.4, [1, 0.85, 0.45], yaw);
@@ -140,6 +143,7 @@ export class Places {
       for (const [lx, lz, col] of [[-4, -3.5, [0.95, 0.55, 0.15]], [-5.5, 2.5, [0.25, 0.55, 0.85]], [-1.5, 4.5, [0.3, 0.7, 0.35]]]) {
         const [tx, tz] = P(lx, lz);
         this.tent(b, tx, y, tz, 1.4, 2.0, 1.3, col, yaw + rnd() * 0.8);
+        c.obstacles.push({ x: tx, z: tz, r: 1.8 });
       }
     }
     // Fire ring.
@@ -148,6 +152,19 @@ export class Places {
     b.box(fx, y + 0.15, fz, 0.6, 0.08, 0.1, WOOD_D, 0.5); b.box(fx, y + 0.18, fz, 0.6, 0.08, 0.1, WOOD_D, -0.7);
     for (const [lx, lz] of [[-0.5, 1.4], [1.2, -1.6]]) { const [sx, sz] = P(lx, lz); b.box(sx, y + 0.25, sz, 0.9, 0.2, 0.25, WOOD, yaw + 0.3); }
     c.fire = { x: fx, y: y + 0.4, z: fz };
+    c.obstacles.push({ x: fx, z: fz, r: 0.9 });
+    // Notice board (jobs) and boat rack (boats), for paddlers ashore.
+    const [nx2, nz2] = P(1.0, -4.6);
+    b.box(nx2, y + 0.8, nz2, 0.08, 0.8, 0.08, WOOD_D, yaw); const [nx3, nz3] = P(1.0, -3.0); b.box(nx3, y + 0.8, nz3, 0.08, 0.8, 0.08, WOOD_D, yaw);
+    const [nbx, nbz] = P(1.0, -3.8);
+    b.box(nbx, y + 1.55, nbz, 0.06, 0.5, 1.0, WOOD, yaw);
+    for (let k = 0; k < 3; k++) { const [px2, pz2] = P(1.07, -4.3 + k * 0.45); b.box(px2, y + 1.55 + (k % 2) * 0.12, pz2, 0.01, 0.16, 0.14, [0.95, 0.92, 0.8], yaw); }
+    const [rx, rz] = P(-2.5, 6.5);
+    b.box(rx, y + 0.5, rz, 0.1, 0.5, 1.6, WOOD_D, yaw); const [rx2, rz2] = P(-4.5, 6.5); b.box(rx2, y + 0.5, rz2, 0.1, 0.5, 1.6, WOOD_D, yaw);
+    const [kbx, kbz] = P(-3.5, 6.5);
+    b.box(kbx, y + 0.95, kbz, 1.6, 0.12, 0.3, [0.95, 0.72, 0.1], yaw);   // a kayak on the rack
+    b.box(kbx, y + 0.65, kbz + 0.0, 1.9, 0.12, 0.35, [0.2, 0.5, 0.35], yaw); // and a canoe
+    c.obstacles.push({ x: kbx, z: kbz, r: 1.6 }, { x: nbx, z: nbz, r: 0.6 });
     this.lights.push({ x: fx, y: y + 1.0, z: fz, r: 14, c: [1, 0.55, 0.2], i: 1.6, fire: true });
     // Flag pole.
     const [px, pz] = P(2.5, 3.5);
@@ -158,6 +175,14 @@ export class Places {
     this.anim.push({ kind: "flag", camp: c, mesh: flag.build(), x: px, y: y + 6.3, z: pz, phase: rnd() * 6 });
     // Shuttle truck at the camps that have a road (all of them, for now).
     const [kx, kz] = P(-9, -6.5);
+    c.obstacles.push({ x: kx, z: kz, r: 2.4 });
+    c.spots = [
+      { id: "fire", x: fx, z: fz, r: 2.6, label: "Rest by the fire", tab: "camp" },
+      { id: "board", x: nbx, z: nbz, r: 2.2, label: "Read the job board", tab: "jobs" },
+      { id: "rack", x: kbx, z: kbz, r: 2.8, label: "Look over the boats", tab: "boats" },
+      { id: "truck", x: kx, z: kz, r: 3.6, label: "Ride the shuttle truck", tab: "shuttle" },
+      { id: "dock", ...(([ax, az]) => ({ x: ax, z: az }))(P(5.2, 0)), r: 2.4, label: "Get back in the boat", embark: true },
+    ];
     const ky = heightAt(this.game.world, kx, kz);
     b.box(kx, ky + 0.8, kz, 2.2, 0.5, 1.0, [0.65, 0.18, 0.12], yaw);
     b.box(kx + Math.cos(yaw) * 1.3, ky + 1.55, kz + Math.sin(yaw) * 1.3, 0.8, 0.45, 0.95, [0.65, 0.18, 0.12], yaw);
@@ -271,15 +296,18 @@ export class Places {
     return r.name;
   }
 
+  // E at a camp: step ashore (or, ashore, use what's in reach).
   interact() {
-    const b = this.game.boat, c = this.campNear(b.x, b.z);
+    const g = this.game;
+    if (g.walker?.active) return g.walker.interact();
+    const b = g.boat, c = this.campNear(b.x, b.z);
     if (!c) return false;
-    this.game.hud.panels.camp?.openAt(c);
+    if (!g.walker?.disembark(c)) g.hud.panels.camp?.openAt(c);
     return true;
   }
 
   tick(dt) {
-    const g = this.game, b = g.boat;
+    const g = this.game, b = g.pos();
     // Discoveries.
     for (const p of [...this.camps, ...this.landmarks]) {
       if (Math.hypot(p.x - b.x, p.z - b.z) < (p.kind ? 60 : 45)) g.journal?.discover(p);
@@ -290,7 +318,8 @@ export class Places {
       if (c) { g.journal?.visitCamp(c); g.audio?.bark?.("camp"); }
     }
     const sp = Math.hypot(b.vx, b.vz);
-    g.hud.prompt(c && !g.hud.anyOpen() ? `<b>${c.name}</b> · ${g.input.touch ? `<button class="btn" id="p-camp">Go ashore</button>` : "<kbd>E</kbd> go ashore"}` : g.races?.promptHtml?.() || null);
+    if (g.walker?.active) return;
+    g.hud.prompt(c && !g.hud.anyOpen() ? `<b>${c.name}</b> · ${g.input.touch ? `<button class="btn" id="p-camp">Go ashore</button>` : "<kbd>E</kbd> go ashore and walk around"}` : g.races?.promptHtml?.() || null);
     const pb = document.getElementById("p-camp");
     if (pb && !pb.onclick) pb.onclick = () => this.interact();
     void sp;

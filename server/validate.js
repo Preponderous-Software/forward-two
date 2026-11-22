@@ -1,7 +1,8 @@
 // Input checks for the live protocol and the ghost API. Pure functions.
 
 export const WORLD_MIN = 0, WORLD_MAX = 3100, MAX_SPEED = 30;
-export const BOATS = new Set(["raft", "kayak", "canoe", "dory"]);
+// "walker" is a paddler ashore at a camp (drawn as a person).
+export const BOATS = new Set(["raft", "kayak", "canoe", "dory", "walker"]);
 export const EMOTES = new Set(["wave", "flare", "bell"]);
 export const DEFAULT_NAME = "Paddler";
 export const DEFAULT_COLOUR = [0.85, 0.24, 0.12];

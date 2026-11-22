@@ -9,6 +9,7 @@ import { heightAt, waterAt } from "../world/terrain.js";
 import { clamp, lerp } from "../world/noise.js";
 import { Hud } from "../ui/hud.js";
 import { Input } from "../ui/input.js";
+import { Walker } from "./walker.js";
 
 const STEP = 1 / 60;
 const DAY_SECONDS = 24 * 60;          // one in-game day in real seconds
@@ -92,6 +93,7 @@ export class Game {
     if (!this.colour && this.net.profile?.colour) this.colour = this.net.profile.colour;
     this.hud = new Hud(this, this.uiRoot);
     this.input = new Input(this, this.canvas, this.uiRoot);
+    this.walker = new Walker(this);
     this.canvas.addEventListener("pointerdown", () => { this.camState.freeUntil = performance.now() + 4000; });
     this.canvas.addEventListener("wheel", () => { this.camState.freeUntil = performance.now() + 4000; }, { passive: true });
     this.boatsOwned = new Set(["raft"]);
@@ -120,7 +122,7 @@ export class Game {
   setBoat(kind) {
     const old = this.boat;
     this.boat = makeBoat(kind, old.x, old.z, old.heading);
-    this.boat.y = old.y;
+    this.boat.y = old.y; this.boat.moored = old.moored;
     this.makeBoatMeshes(kind);
     this.hud.toast(`You take the ${BOATS[kind].name.toLowerCase()}.`);
   }
@@ -135,9 +137,12 @@ export class Game {
   }
 
   // A stroke from the player (keyboard, touch or pad).
+  // Where the player is: on foot, or in the boat.
+  pos() { return this.walker?.active ? this.walker : this.boat; }
+
   playerStroke(kind) {
     const now = this.time;
-    if (this.paused) return;
+    if (this.paused || this.walker?.active) return;
     const verdict = this.caller.judge(kind, now);
     let power = 1;
     if (verdict) {
@@ -162,6 +167,7 @@ export class Game {
   }
 
   shuttleTo(camp) {
+    if (this.walker?.active) { this.walker.active = false; this.walker.setVisible(false); this.cameraOverride = null; this.boat.moored = false; }
     const b = this.boat, s = camp.sample;
     const x = camp.x + camp.nx * 15, z = camp.z + camp.nz * 15;
     b.x = x; b.z = z; b.vx = b.vz = 0; b.spin = 0; b.heading = s ? Math.atan2(s.tz, s.tx) : b.heading;
@@ -208,13 +214,14 @@ export class Game {
     this.time += dt;
     const b = this.boat;
     this.input.tick(dt);
-    const evs = stepBoat(this.world, b, dt, this.featureIdx);
+    this.walker.tick(dt);
+    const evs = b.moored ? [] : stepBoat(this.world, b, dt, this.featureIdx);
     for (const e of evs) {
       if (e.type === "bank") this.penalty(Math.min(0.25, (e.speed - 1.2) * 0.08), null);
       if (e.type === "rock") this.penalty(Math.min(0.35, e.speed * 0.1), "Rock!");
       if (e.type === "drop") { this.hud.flash(`Drop! ${e.height.toFixed(0)} m`); this.audio?.splash(1); this.journal.onDrop(e.height); }
     }
-    for (const e of this.caller.update(this.time, b)) {
+    for (const e of (b.moored ? [] : this.caller.update(this.time, b))) {
       if (e.type === "enter") { this.hud.rapid(e.rapid); this.audio?.rapid(e.rapid); }
       if (e.type === "leave") { this.hud.rapidDone(e.rapid, e.stats); this.journal.onRapid(e.rapid, e.stats, b); }
       if (e.type === "call") this.audio?.call(e.call, e.time - this.time);
@@ -323,6 +330,7 @@ export class Game {
       const col = { left: [0.2, 0.7, 1], right: [1, 0.55, 0.15], forward: [0.3, 1, 0.4], back: [1, 0.3, 0.3] }[c.call];
       R.points.push(f.x, f.y + 1.6, f.z, 12, 0.6, col[0], col[1], col[2], 0.9, 0);
     }
+    this.walker.draw();
     for (const s of [this.places, this.races, this.others, this.jobs]) s?.draw?.(R, this.labelText, dt);
     this.flowWater(dt);
     this.camera(dt);

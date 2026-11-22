@@ -203,7 +203,7 @@ export class Net {
 
   sendHello() {
     const g = this.game;
-    this.send({ t: "hello", name: this.profile.name, colour: this.colour(), boat: g.boat?.kind || "raft", seed: g.world?.seed, room: this.room });
+    this.send({ t: "hello", name: this.profile.name, colour: this.colour(), boat: g.walker?.active ? "walker" : (g.boat?.kind || "raft"), seed: g.world?.seed, room: this.room });
   }
 
   ping() { this.send({ t: "time", c: Date.now() }); }
@@ -301,7 +301,8 @@ export class Net {
     this.sendAcc += dt;
     if (this.sendAcc >= 0.1) {
       this.sendAcc = Math.min(this.sendAcc - 0.1, 0.1);
-      const b = this.game.boat;
+      const w = this.game.walker;
+      const b = w && w.active ? { x: w.x, z: w.z, y: w.y, heading: w.heading, vx: w.vx, vz: w.vz, kind: "walker", swimming: false } : this.game.boat;
       if (b && [b.x, b.z, b.y, b.heading, b.vx, b.vz].every(Number.isFinite)) {
         const c = (v) => Math.min(3100, Math.max(0, v));
         let vx = b.vx, vz = b.vz;

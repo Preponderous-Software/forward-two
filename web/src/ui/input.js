@@ -23,6 +23,7 @@ export class Input {
 
   key(e, down) {
     if (e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    this.shift = e.shiftKey;
     const g = this.game;
     const s = KEYS[e.code];
     if (s) {

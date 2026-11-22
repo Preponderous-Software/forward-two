@@ -81,14 +81,14 @@ export class Journal {
   onFlip() { this.feat("swim"); }
 
   tick(dt) {
-    const g = this.game, b = g.boat, w = g.world;
+    const g = this.game, b = g.pos(), w = g.world;
     const i = Math.floor(b.x / w.size * 64), j = Math.floor(b.z / w.size * 64);
     for (let dj = -1; dj <= 1; dj++) for (let di = -1; di <= 1; di++) {
       const ii = i + di, jj = j + dj;
       if (ii >= 0 && jj >= 0 && ii < 64 && jj < 64) this.explored[jj * 64 + ii] = 1;
     }
-    if (g.night > 0.6 && Math.hypot(b.vx, b.vz) > 0.5) { this.nightTime += dt; if (this.nightTime > 120) this.feat("night"); }
-    if (this.fromSource && w.water && b.current && !b.current.hit && !w.lake.inside(b.x, b.z) && b.x + b.z > w.size * 1.82) { this.feat("sea"); }
-    if (b.current?.hit?.river.id === "long" && b.current.hit.sample.s < 40) this.fromSource = true;
+    if (g.night > 0.6 && !g.walker?.active && Math.hypot(b.vx, b.vz) > 0.5) { this.nightTime += dt; if (this.nightTime > 120) this.feat("night"); }
+    if (this.fromSource && !g.walker?.active && w.water && b.current && !b.current.hit && !w.lake.inside(b.x, b.z) && b.x + b.z > w.size * 1.82) { this.feat("sea"); }
+    if (!g.walker?.active && b.current?.hit?.river.id === "long" && b.current.hit.sample.s < 40) this.fromSource = true;
   }
 }

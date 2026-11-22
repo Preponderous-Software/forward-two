@@ -24,7 +24,30 @@ function hull(b, stations, color, rim) {
   }
 }
 
+// A paddler on foot, origin at the feet, facing +x. withLegs=false leaves the
+// legs out (the local walker swings its own leg meshes).
+export function personMesh(colour, withLegs = true) {
+  const b = new MeshBuilder();
+  const pants = [0.18, 0.2, 0.26];
+  if (withLegs) { b.box(0, 0.45, -0.12, 0.09, 0.45, 0.09, pants); b.box(0, 0.45, 0.12, 0.09, 0.45, 0.09, pants); }
+  b.box(0, 1.2, 0, 0.17, 0.32, 0.26, colour);                   // torso + PFD
+  b.box(0.02, 1.62, 0, 0.12, 0.13, 0.12, SKIN);                  // head
+  b.box(0, 1.76, 0, 0.15, 0.06, 0.15, HELMET);                   // helmet
+  b.box(0, 1.15, -0.34, 0.07, 0.3, 0.07, colour);                // arms
+  b.box(0, 1.15, 0.34, 0.07, 0.3, 0.07, colour);
+  b.box(-0.2, 1.25, 0, 0.06, 0.25, 0.2, [0.25, 0.25, 0.3]);     // a small pack
+  return b.build();
+}
+
+export function legMesh() {
+  const b = new MeshBuilder();
+  b.box(0, -0.45, 0, 0.09, 0.45, 0.09, [0.18, 0.2, 0.26]);       // hangs from the hip
+  b.box(0.06, -0.88, 0, 0.14, 0.05, 0.1, [0.12, 0.1, 0.08]);     // boot
+  return b.build();
+}
+
 export function boatMesh(kind, colour) {
+  if (kind === "walker") return personMesh(colour);
   const b = new MeshBuilder();
   const c = colour, rim = [c[0] * 0.6, c[1] * 0.6, c[2] * 0.6];
   if (kind === "raft") {

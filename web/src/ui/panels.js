@@ -106,7 +106,7 @@ export class MenuPanel extends Panel {
 }
 
 export class CampPanel extends Panel {
-  openAt(c) { this.camp = c; this.tab = "camp"; this.open(); }
+  openAt(c, tab = "camp") { this.camp = c; this.tab = tab; this.open(); }
   render() {
     const g = this.game, c = this.camp; if (!c) return;
     const owned = g.boatsOwned || new Set(["raft"]);
@@ -185,7 +185,7 @@ export class MapPanel extends Panel {
   }
 
   draw() {
-    if (!this.isOpen() && this.canvas && !this.el.classList.contains("open")) return;
+    if (!this.canvas) return;
     const g = this.game, w = g.world, ctx = this.canvas.getContext("2d"), S = this.canvas.width, k = S / w.size;
     ctx.drawImage(this.base, 0, 0, S, S);
     // Fog.
