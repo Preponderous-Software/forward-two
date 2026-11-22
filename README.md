@@ -10,7 +10,21 @@ Forward Two is the sequel to [Forward One](https://github.com/McElyea/forward-on
 by Jon McElyea. It keeps Forward One's guide calls and timing gate, and opens
 the map: travel is the game, and rhythm is how you get through the hard water.
 
-![The raft on the Long Water](docs/media/first-look.png)
+**Play it:** <https://forward-two.play.danielstephenson.dev> (desktop or phone)
+
+![The raft on the Long Water in the evening](docs/media/river.png)
+
+| | |
+|---|---|
+| ![Running the Throat, the class V heart of the gorge](docs/media/rapids.png) | ![The High Falls](docs/media/falls.png) |
+| **The Throat.** Class V whitewater in the gorge, run on the guide's calls. | **The High Falls.** Sixteen metres. Run it or carry round. |
+| ![Mirror Lake in the morning](docs/media/lake.png) | ![Meadow Fork camp at night](docs/media/night-camp.png) |
+| **Mirror Lake.** Open water, a lone pine island, and race buoys. | **Camps at night.** Campfires and lanterns; fireflies over the meadows. |
+| ![Ashore at a camp](docs/media/ashore.png) | ![Saltmouth and its lighthouse at dusk](docs/media/saltmouth.png) |
+| **Ashore.** Step off at a camp and walk: the fire, the job board, the boat rack, the shuttle truck. | **Saltmouth.** The town where the Long Water meets the sea. |
+
+<p align="center"><img src="docs/media/map.png" width="560" alt="The map of the Long Water, with camps and landmarks found and the fog lifted where you've paddled"></p>
+<p align="center"><em>The map: camps, landmarks and rivers, with the fog lifting where you've been.</em></p>
 
 ## Play
 
@@ -19,21 +33,29 @@ the map: travel is the game, and rhythm is how you get through the hard water.
 - **Rapids:** the guide calls *Forward, Back, Left, Right* on the beat. Hit
   each call as its marker reaches the gate. Clean strokes keep your line and
   fill the flow meter. Misses hit the rocks, and too many put you in the river.
-- **Camps:** `E` to go ashore. Rest, change boats, take delivery jobs, or take
-  the shuttle truck back to any camp you've found.
+- **Camps:** `E` steps you ashore and you can walk anywhere on land (`WASD`,
+  `Shift` to run, drag to look). Walk to the fire to rest, the job board for
+  deliveries, the boat rack to change boats, the truck to shuttle to any camp
+  you've found, and the dock to get back in the boat.
+- **Multiplayer:** everyone on the river is in the same world. You see other
+  paddlers live, can start group races at a course's start buoy (`R`), and race
+  the best ghosts on each course's online board.
 - `M` map, `J` journal, `1` `2` `3` wave, flare, bell.
 
 ## Run it locally
 
 The game is static files plus a prebuilt engine (`web/engine/`), so any static
-server works. The bundled server also hosts multiplayer:
+server works. The bundled server also hosts multiplayer
+(the live game uses the relay at `forward-two-api.play.danielstephenson.dev`):
 
 ```sh
 node server/main.js --static web --port 8790   # Node 22, no npm install
 ```
 
 Then open <http://localhost:8790>. Useful URL options: `?world=small` (a
-lighter world for phones), `?seed=N`, `?hour=6.5`, `?new=1`, `?skip=1`.
+lighter world for phones), `?seed=N`, `?hour=6.5`, `?new=1`, `?skip=1`, `?server=<url>` (a different relay) or `?server=off` (offline).
+
+`tools/readme-shots.cjs` regenerates the stills above from a running server.
 
 ## How it's built
 

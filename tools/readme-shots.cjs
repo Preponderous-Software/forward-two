@@ -13,8 +13,8 @@ const SHOTS = [
   { name: 'falls', hour: 9.5, setup: `const l = g.places.landmarks.find((x) => x.id === 'falls'); const S = g.world.rivers[0].samples; const i = S.findIndex((p) => Math.hypot(p.x - l.x, p.z - l.z) < 4); atS(0, S[i].s + 45, 0, Math.PI); fixed((cam) => { cam.tx = l.x; cam.tz = l.z; cam.ty = l.level - 6; cam.dist = 62; cam.pitch = 0.16; cam.yaw = Math.atan2(S[i + 30].z - l.z, S[i + 30].x - l.x); });` },
   { name: 'lake', hour: 7.2, setup: `const L = g.world.lake; const isle = g.places.landmarks.find((x) => x.id === 'isle'); g.boat.x = L.cx + L.R * 0.35; g.boat.z = L.cz + L.R * 0.2; g.boat.y = L.level; g.boat.heading = Math.atan2(isle.z - g.boat.z, isle.x - g.boat.x); g.snapCamera(); g.kit.cam.pitch = 0.22;` },
   { name: 'night-camp', hour: 22.3, setup: `const c = g.places.camps[0]; g.boat.x = c.x + c.nx * 20; g.boat.z = c.z + c.nz * 20; g.boat.heading = Math.atan2(-c.nz, -c.nx) + 0.4; g.snapCamera(); g.kit.cam.dist = 22; g.kit.cam.pitch = 0.3;` },
-  { name: 'ashore', hour: 16.5, setup: `const c = g.places.camps[2]; g.walker.disembark(c); g.input.held.set('forward', 9);`, frames: 50, after: `g.input.held.delete('forward');` },
-  { name: 'saltmouth', hour: 19.6, setup: `const l = g.places.landmarks.find((x) => x.id === 'lighthouse'); const c = g.places.camps.find((x) => x.id === 'town'); g.boat.x = c.x + c.nx * 30; g.boat.z = c.z + c.nz * 30; fixed((cam) => { cam.tx = (l.x + c.x) / 2; cam.tz = (l.z + c.z) / 2; cam.ty = c.y + 6; cam.dist = 85; cam.pitch = 0.25; cam.yaw = Math.atan2(c.nz, c.nx) + 0.5; });` },
+  { name: 'ashore', hour: 10.5, setup: `const c = g.places.camps[0]; g.walker.disembark(c); g.input.held.set('forward', 9);`, frames: 50, after: `g.input.held.delete('forward');` },
+  { name: 'saltmouth', hour: 18.6, setup: `const l = g.places.landmarks.find((x) => x.id === 'lighthouse'); const c = g.places.camps.find((x) => x.id === 'town'); g.boat.x = c.x + c.nx * 30; g.boat.z = c.z + c.nz * 30; fixed((cam) => { cam.tx = l.x * 0.6 + c.x * 0.4; cam.tz = l.z * 0.6 + c.z * 0.4; cam.ty = c.y + 5; cam.dist = 42; cam.pitch = 0.2; cam.yaw = Math.atan2(c.nz, c.nx) + 0.35; });` },
 ];
 
 const PRELUDE = `

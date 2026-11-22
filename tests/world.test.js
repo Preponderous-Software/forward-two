@@ -117,3 +117,13 @@ test("river water texture runs downstream (uv v grows with distance along the ri
   };
   assert.ok(vNear(b) > vNear(a), "downstream water has the larger v");
 });
+
+test("every camp and every built landmark stands on dry land", async () => {
+  const { Places } = await import("../web/src/game/places.js");
+  const small = generateWorld(1, "small");
+  const p = new Places({ world: small });
+  for (const q of [...p.camps, ...p.landmarks.filter((l) => l.side)]) {
+    const wl = waterAt(small, q.x, q.z), h = heightAt(small, q.x, q.z);
+    assert.ok(Number.isNaN(wl) || h > wl, `${q.id} is in the water (ground ${h.toFixed(1)}, water ${wl})`);
+  }
+});

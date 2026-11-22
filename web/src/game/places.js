@@ -17,7 +17,7 @@ export const CAMPS = [
   { id: "dock", name: "Mirror Dock", river: "lake", f: 0, side: 1, flag: [0.3, 0.9, 0.8], blurb: "A long dock on the east shore of Mirror Lake." },
   { id: "mill", name: "Coldwater Mill", river: "cold", f: 0.52, side: -1, flag: [0.7, 0.5, 0.9], blurb: "The old mill still turns. The miller trades in cargo." },
   { id: "ferry", name: "Ferry Landing", river: "long", f: 0.84, side: -1, flag: [0.2, 0.5, 0.95], blurb: "The ferry crossing below the lake." },
-  { id: "town", name: "Saltmouth", river: "long", f: 0.965, side: 1, flag: [1, 1, 1], blurb: "The town at the river's mouth, and the sea beyond." },
+  { id: "town", name: "Saltmouth", river: "long", f: 0.93, side: 1, flag: [1, 1, 1], blurb: "The town at the river's mouth, and the sea beyond." },
 ];
 
 export const LANDMARKS = [
@@ -30,7 +30,7 @@ export const LANDMARKS = [
   { id: "isle", name: "Lone Pine Isle", river: "lake", f: 0, side: 0, kind: "isle", blurb: "One pine on one rock in the middle of Mirror Lake." },
   { id: "wheel", name: "The Mill Wheel", river: "cold", f: 0.52, side: 1, kind: "wheel", blurb: "Turned by the Coldwater for a hundred years." },
   { id: "rookery", name: "Heron Rookery", river: "long", f: 0.93, side: -1, kind: "rookery", blurb: "Grey herons nest in the dead trees of the delta." },
-  { id: "lighthouse", name: "Saltmouth Light", river: "long", f: 0.995, side: -1, kind: "lighthouse", blurb: "The end of the river. The light turns all night." },
+  { id: "lighthouse", name: "Saltmouth Light", river: "long", f: 0.975, side: -1, kind: "lighthouse", blurb: "The end of the river. The light turns all night." },
 ];
 
 const WOOD = [0.42, 0.28, 0.16], WOOD_D = [0.28, 0.18, 0.1], STONE = [0.55, 0.53, 0.5], CANVAS = [0.86, 0.8, 0.66], ROOF = [0.45, 0.2, 0.15];
@@ -65,6 +65,8 @@ export class Places {
       let x, z, nx, nz;
       if (p.shore) { x = p.x; z = p.z; nx = p.nx; nz = p.nz; }
       else { const off = p.half + 9; x = p.x - p.tz * off * def.side; z = p.z + p.tx * off * def.side; nx = p.tz * def.side; nz = -p.tx * def.side; }
+      // Never in the water: step away from it until the ground is dry and above the river.
+      for (let k = 0; k < 60 && !this.dry(x, z, p.level + 0.4); k++) { x -= nx * 2; z -= nz * 2; }
       // nx, nz: from the camp toward the water.
       const camp = { ...def, x, z, y: p.level + 1.3, level: p.level, nx, nz, rx: p.x, rz: p.z, sample: p.sample };
       this.flatten(x, z, 13, camp.y);
@@ -74,10 +76,21 @@ export class Places {
       const p = at(def);
       const off = def.side ? p.half + 7 : 0;
       const x = p.x - p.tz * off * def.side, z = p.z + p.tx * off * def.side;
-      const lm = { ...def, x, z, level: p.level, tx: p.tx, tz: p.tz, half: p.half };
+      let lx = x, lz = z;
+      if (def.side) {
+        // Built things stand on dry land: walk away from the river (and the sea, to the north-west).
+        const ax = p.tz * def.side, az = -p.tx * def.side;
+        for (let k = 0; k < 80 && !this.dry(lx, lz, Math.max(p.level, 0) + 0.8); k++) { lx -= ax * 1.5 + 0.7; lz -= az * 1.5 + 0.7; }
+      }
+      const lm = { ...def, x: lx, z: lz, level: p.level, tx: p.tx, tz: p.tz, half: p.half };
       if (def.kind === "hotspring" || def.kind === "rookery" || def.kind === "lighthouse" || def.kind === "wheel") this.flatten(x, z, 8, p.level + 1.0);
       this.landmarks.push(lm);
     }
+  }
+
+  dry(x, z, minH) {
+    const w = this.game.world;
+    return Number.isNaN(waterAt(w, x, z)) && heightAt(w, x, z) > minH;
   }
 
   // Blend the ground under (x, z) to height y within radius r (and repaint it).

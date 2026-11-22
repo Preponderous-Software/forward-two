@@ -278,7 +278,8 @@ export class Game {
     const dusk = clamp(1 - Math.abs(elev - 4) / 10, 0, 1);
     this.bridge.levels(new Float32Array([
       1, 1, 1,
-      0.035 * night + 0.01, 0.045 * night + 0.012, 0.085 * night + 0.02,
+      // Moonlight: enough lift that banks, rocks and wakes stay readable at night.
+      0.08 * night + 0.01, 0.1 * night + 0.012, 0.17 * night + 0.02,
       1, 1, 1 - dusk * 0.18, 1 - dusk * 0.35,
     ]));
     // Boat.

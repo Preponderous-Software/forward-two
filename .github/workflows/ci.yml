@@ -41,7 +41,7 @@ jobs:
           mkdir -p smoke-out
           node server/main.js --static web --port 8790 > server.log 2>&1 &
           sleep 1
-          node tools/shot.cjs "http://127.0.0.1:8790/?world=small&quality=1&new=1&nosave=1&skip=1" smoke-out/boot.png 10 1280 720 | tee smoke-out/console.txt
+          node tools/shot.cjs "http://127.0.0.1:8790/?world=small&quality=1&new=1&nosave=1&skip=1&server=off" smoke-out/boot.png 10 1280 720 | tee smoke-out/console.txt
           ! grep -q "pageerror" smoke-out/console.txt
 
       - name: Upload the still

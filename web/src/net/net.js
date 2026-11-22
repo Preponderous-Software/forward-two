@@ -111,6 +111,7 @@ export class Net {
 
   findServer() {
     let raw = this.query("server");
+    if (raw === "off") return null;          // ?server=off plays offline
     if (!raw) {
       try { raw = globalThis.document?.querySelector('meta[name="f2-server"]')?.getAttribute("content") || ""; } catch { raw = ""; }
     }
