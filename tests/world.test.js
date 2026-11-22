@@ -101,3 +101,19 @@ test("rapids have features with calls, and the guide calls them on the beat", ()
   caller.update(1000, b);
   assert.equal(caller.calls.length, 0);
 });
+
+test("river water texture runs downstream (uv v grows with distance along the river)", async () => {
+  const { waterMesh } = await import("../web/src/render/meshes.js");
+  const m = waterMesh(world);
+  const long = world.rivers[0];
+  const a = long.samples[Math.floor(long.samples.length * 0.4)], b = long.samples[Math.floor(long.samples.length * 0.42)];
+  const vNear = (p) => {
+    let best = Infinity, v = 0;
+    for (let i = 0; i < m.positions.length / 3; i++) {
+      const d = (m.positions[i * 3] - p.x) ** 2 + (m.positions[i * 3 + 2] - p.z) ** 2;
+      if (d < best) { best = d; v = m.uvs[i * 2 + 1]; }
+    }
+    return v;
+  };
+  assert.ok(vNear(b) > vNear(a), "downstream water has the larger v");
+});

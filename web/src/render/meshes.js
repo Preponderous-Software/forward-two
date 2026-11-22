@@ -87,8 +87,8 @@ export class MeshBuilder {
 // ------------------------------------------------------------------ water
 
 // The rivers' and lake's surface on the terrain grid; the sea is a plane.
-// uv: along each river v = -s / 6 (so scrolling the texture's rows makes it
-// flow downstream), u = lateral / 6; on the lake, world xz / 9.
+// uv: along each river v = s / 6 (flowWater shifts texels toward higher v, so
+// the ripples run downstream), u = lateral / 6; on the lake, world xz / 9.
 export function waterMesh(world) {
   const { n, cell, water, nearest, seeds, rivers } = world;
   const vid = new Int32Array(n * n).fill(-1);
@@ -114,7 +114,7 @@ export function waterMesh(world) {
     if (seeds.river[k] >= 0) {
       const p = rivers[seeds.river[k]].samples[seeds.index[k]];
       const lat = (x - p.x) * -p.tz + (z - p.z) * p.tx;
-      u = lat / 6; v = -p.s / 6;
+      u = lat / 6; v = p.s / 6;
       const white = clamp((p.cls - 1.5) / 3.5, 0, 1) * 0.85;
       const speed = flowSpeed(p);
       r = lerp(0.15, 0.82, white); g = lerp(0.34 + speed * 0.015, 0.88, white); b = lerp(0.38, 0.9, white);
