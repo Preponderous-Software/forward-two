@@ -1,0 +1,340 @@
+{
+ "voice": "Kokoro-82M am_michael (Apache-2.0); clips CC0",
+ "lead": 0.35,
+ "clips": {
+  "forward": [
+   {
+    "file": "forward-1.ogg",
+    "text": "Forward!",
+    "stress": 0.35,
+    "dur": 0.867
+   },
+   {
+    "file": "forward-2.ogg",
+    "text": "Forward! Dig!",
+    "stress": 0.35,
+    "dur": 1.069
+   },
+   {
+    "file": "forward-3.ogg",
+    "text": "Forward, hard!",
+    "stress": 0.35,
+    "dur": 1.031
+   }
+  ],
+  "back": [
+   {
+    "file": "back-1.ogg",
+    "text": "Back paddle!",
+    "stress": 0.35,
+    "dur": 1.099
+   },
+   {
+    "file": "back-2.ogg",
+    "text": "Back! Back!",
+    "stress": 0.36,
+    "dur": 0.726
+   },
+   {
+    "file": "back-3.ogg",
+    "text": "Back paddle, now!",
+    "stress": 0.35,
+    "dur": 1.256
+   }
+  ],
+  "left": [
+   {
+    "file": "left-1.ogg",
+    "text": "Left!",
+    "stress": 0.35,
+    "dur": 0.8
+   },
+   {
+    "file": "left-2.ogg",
+    "text": "Left, left!",
+    "stress": 0.41,
+    "dur": 0.819
+   },
+   {
+    "file": "left-3.ogg",
+    "text": "Hard left!",
+    "stress": 0.36,
+    "dur": 0.761
+   }
+  ],
+  "right": [
+   {
+    "file": "right-1.ogg",
+    "text": "Right!",
+    "stress": 0.35,
+    "dur": 0.766
+   },
+   {
+    "file": "right-2.ogg",
+    "text": "Right, right!",
+    "stress": 0.37,
+    "dur": 0.779
+   },
+   {
+    "file": "right-3.ogg",
+    "text": "Hard right!",
+    "stress": 0.35,
+    "dur": 0.724
+   }
+  ],
+  "enter": [
+   {
+    "file": "enter-1.ogg",
+    "text": "Here we go, dig in!",
+    "dur": 1.18
+   },
+   {
+    "file": "enter-2.ogg",
+    "text": "Rapid ahead, eyes up!",
+    "dur": 1.346
+   },
+   {
+    "file": "enter-3.ogg",
+    "text": "Big water, stay with me!",
+    "dur": 1.409
+   }
+  ],
+  "clean": [
+   {
+    "file": "clean-1.ogg",
+    "text": "Clean line!",
+    "dur": 0.881
+   },
+   {
+    "file": "clean-2.ogg",
+    "text": "Beautiful!",
+    "dur": 0.799
+   }
+  ],
+  "swim": [
+   {
+    "file": "swim-1.ogg",
+    "text": "Swimmer! Grab the boat!",
+    "dur": 1.286
+   }
+  ],
+  "back_in": [
+   {
+    "file": "back_in-1.ogg",
+    "text": "Got you, back in!",
+    "dur": 1.078
+   }
+  ],
+  "falls": [
+   {
+    "file": "falls-1.ogg",
+    "text": "Hold on!",
+    "dur": 0.768
+   }
+  ],
+  "camp": [
+   {
+    "file": "camp-1.ogg",
+    "text": "Camp's on the left bank.",
+    "dur": 1.369
+   }
+  ],
+  "night": [
+   {
+    "file": "night-1.ogg",
+    "text": "Getting dark, find a camp.",
+    "dur": 1.645
+   }
+  ]
+ },
+ "_meta": {
+  "forward-1.ogg": {
+   "sig": "d07afe4d32",
+   "entry": {
+    "file": "forward-1.ogg",
+    "text": "Forward!",
+    "stress": 0.35,
+    "dur": 0.867
+   }
+  },
+  "forward-2.ogg": {
+   "sig": "e1e81a0b95",
+   "entry": {
+    "file": "forward-2.ogg",
+    "text": "Forward! Dig!",
+    "stress": 0.35,
+    "dur": 1.069
+   }
+  },
+  "forward-3.ogg": {
+   "sig": "aad5932b66",
+   "entry": {
+    "file": "forward-3.ogg",
+    "text": "Forward, hard!",
+    "stress": 0.35,
+    "dur": 1.031
+   }
+  },
+  "back-1.ogg": {
+   "sig": "5810f9e0b9",
+   "entry": {
+    "file": "back-1.ogg",
+    "text": "Back paddle!",
+    "stress": 0.35,
+    "dur": 1.099
+   }
+  },
+  "back-2.ogg": {
+   "sig": "19dde698f5",
+   "entry": {
+    "file": "back-2.ogg",
+    "text": "Back! Back!",
+    "stress": 0.36,
+    "dur": 0.726
+   }
+  },
+  "back-3.ogg": {
+   "sig": "081bc293d7",
+   "entry": {
+    "file": "back-3.ogg",
+    "text": "Back paddle, now!",
+    "stress": 0.35,
+    "dur": 1.256
+   }
+  },
+  "left-1.ogg": {
+   "sig": "66a110f6c3",
+   "entry": {
+    "file": "left-1.ogg",
+    "text": "Left!",
+    "stress": 0.35,
+    "dur": 0.8
+   }
+  },
+  "left-2.ogg": {
+   "sig": "48c4a4a3de",
+   "entry": {
+    "file": "left-2.ogg",
+    "text": "Left, left!",
+    "stress": 0.41,
+    "dur": 0.819
+   }
+  },
+  "left-3.ogg": {
+   "sig": "57da1b0b59",
+   "entry": {
+    "file": "left-3.ogg",
+    "text": "Hard left!",
+    "stress": 0.36,
+    "dur": 0.761
+   }
+  },
+  "right-1.ogg": {
+   "sig": "672a8e107d",
+   "entry": {
+    "file": "right-1.ogg",
+    "text": "Right!",
+    "stress": 0.35,
+    "dur": 0.766
+   }
+  },
+  "right-2.ogg": {
+   "sig": "ae48bdc291",
+   "entry": {
+    "file": "right-2.ogg",
+    "text": "Right, right!",
+    "stress": 0.37,
+    "dur": 0.779
+   }
+  },
+  "right-3.ogg": {
+   "sig": "24902d8918",
+   "entry": {
+    "file": "right-3.ogg",
+    "text": "Hard right!",
+    "stress": 0.35,
+    "dur": 0.724
+   }
+  },
+  "enter-1.ogg": {
+   "sig": "100e096f78",
+   "entry": {
+    "file": "enter-1.ogg",
+    "text": "Here we go, dig in!",
+    "dur": 1.18
+   }
+  },
+  "enter-2.ogg": {
+   "sig": "b2bd40c89e",
+   "entry": {
+    "file": "enter-2.ogg",
+    "text": "Rapid ahead, eyes up!",
+    "dur": 1.346
+   }
+  },
+  "enter-3.ogg": {
+   "sig": "5f61b0e934",
+   "entry": {
+    "file": "enter-3.ogg",
+    "text": "Big water, stay with me!",
+    "dur": 1.409
+   }
+  },
+  "clean-1.ogg": {
+   "sig": "496dcb710b",
+   "entry": {
+    "file": "clean-1.ogg",
+    "text": "Clean line!",
+    "dur": 0.881
+   }
+  },
+  "clean-2.ogg": {
+   "sig": "bac181deb4",
+   "entry": {
+    "file": "clean-2.ogg",
+    "text": "Beautiful!",
+    "dur": 0.799
+   }
+  },
+  "swim-1.ogg": {
+   "sig": "63a69100ee",
+   "entry": {
+    "file": "swim-1.ogg",
+    "text": "Swimmer! Grab the boat!",
+    "dur": 1.286
+   }
+  },
+  "back_in-1.ogg": {
+   "sig": "e389ce3f88",
+   "entry": {
+    "file": "back_in-1.ogg",
+    "text": "Got you, back in!",
+    "dur": 1.078
+   }
+  },
+  "falls-1.ogg": {
+   "sig": "d91f7964be",
+   "entry": {
+    "file": "falls-1.ogg",
+    "text": "Hold on!",
+    "dur": 0.768
+   }
+  },
+  "camp-1.ogg": {
+   "sig": "555bc5ceb3",
+   "entry": {
+    "file": "camp-1.ogg",
+    "text": "Camp's on the left bank.",
+    "dur": 1.369
+   }
+  },
+  "night-1.ogg": {
+   "sig": "4dccbc8b39",
+   "entry": {
+    "file": "night-1.ogg",
+    "text": "Getting dark, find a camp.",
+    "dur": 1.645
+   }
+  }
+ }
+}

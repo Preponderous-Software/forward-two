@@ -287,7 +287,7 @@ export class Places {
     const c = this.campNear(b.x, b.z);
     if (c !== this.near) {
       this.near = c;
-      if (c) g.journal?.visitCamp(c);
+      if (c) { g.journal?.visitCamp(c); g.audio?.bark?.("camp"); }
     }
     const sp = Math.hypot(b.vx, b.vz);
     g.hud.prompt(c && !g.hud.anyOpen() ? `<b>${c.name}</b> · ${g.input.touch ? `<button class="btn" id="p-camp">Go ashore</button>` : "<kbd>E</kbd> go ashore"}` : g.races?.promptHtml?.() || null);

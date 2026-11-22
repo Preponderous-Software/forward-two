@@ -138,6 +138,7 @@ export class Caller {
     // Swim recovery calls: "forward" on the beat until two land or two miss.
     if (boat.swimming && this.swim && now >= this.swim.next) {
       this.calls.push({ feature: null, call: "forward", time: now + LEAD, state: "pending", swim: true });
+      ev.push({ type: "call", call: "forward", time: now + LEAD, feature: null });
       this.swim.next = now + LEAD + 1.1;
     }
     // Misses: calls whose window has passed.
