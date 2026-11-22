@@ -22,6 +22,7 @@ export class Races {
 
   build() {
     const w = this.game.world;
+    this.listen();
     for (const def of COURSES) {
       const r = w.rivers.find((x) => x.id === def.river), S = r.samples;
       const i0 = Math.round(def.f0 * (S.length - 1)), i1 = Math.round(def.f1 * (S.length - 1));
@@ -35,6 +36,26 @@ export class Races {
       const gold = length / def.ref, silver = gold * 1.18, bronze = gold * 1.4;
       this.courses.push({ ...def, river: r, gates, length, medals: { gold, silver, bronze } });
     }
+  }
+
+  // Group races through the server.
+  listen() {
+    const g = this.game;
+    if (this.listening || !g.net?.on) return;
+    this.listening = true;
+    const byId = (id) => this.courses.find((c) => c.id === id);
+    g.net.on("race-lobby", (m) => { const c = byId(m.course); if (c) g.hud.toast(`${c.name}: ${m.ready} ready · start in ${Math.ceil(m.startsIn ?? 10)} s`); });
+    g.net.on("race-start", (m) => {
+      const c = byId(m.course); if (!c || !m.mine || this.run) return;
+      const b = g.boat, gt = c.gates[0];
+      if (Math.hypot(gt.x - b.x, gt.z - b.z) > 60) return;
+      this.begin(c, g.time - Math.max(0, m.elapsed || 0));
+    });
+    g.net.on("race-results", (m) => {
+      const c = byId(m.course); if (!c || !m.final) return;
+      const top = (m.results || []).slice(0, 3).map((r) => `${r.place}. ${r.name} ${fmt(r.ms / 1000)}`).join("  ");
+      if (top) g.hud.toast(`${c.name} results: ${top}`, 6);
+    });
   }
 
   startNear() {
@@ -73,7 +94,7 @@ export class Races {
       const { decode } = await import("../net/ghost.js");
       if (mine && mine.ghost) ghosts.push({ name: "your best", ms: mine.ms, decoded: decode(mine.ghost) });
       const top = (await g.net?.fetchGhosts?.(c.id, 3)) || [];
-      for (const t of top) if (t.ghost) ghosts.push({ name: t.name, ms: t.ms, decoded: decode(t.ghost) });
+      for (const t of top) if (t.ghost && !(mine && t.ghost === mine.ghost)) ghosts.push({ name: t.name, ms: t.ms, decoded: decode(t.ghost) });
     } catch (_) { /* no ghosts: race alone */ }
     if (this.run && this.run.course === c) g.others?.showGhosts?.(c.id, ghosts, t0);
   }

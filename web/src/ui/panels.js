@@ -71,7 +71,7 @@ export class TitlePanel extends Panel {
         <span class="small" id="t-net">${g.net?.online ? `<span class="online">● online</span> · ${g.net.players.size} on the river` : "Offline: ghosts and times stay on this device"}</span>
       </div>
     </div>`;
-    this.el.querySelector("#t-go").onclick = () => { const n = this.el.querySelector("#t-name").value.trim(); if (n) g.net?.setName?.(n); this.close(); g.hud.toast("Push off downstream, or paddle up to the Brightwater. Your call."); };
+    this.el.querySelector("#t-go").onclick = () => { const n = this.el.querySelector("#t-name").value.trim(); if (n) g.net?.setProfile?.({ name: n }); this.close(); g.hud.toast("Push off downstream, or paddle up to the Brightwater. Your call."); };
   }
 }
 
@@ -95,8 +95,8 @@ export class MenuPanel extends Panel {
     this.el.querySelectorAll("[data-x]").forEach((b) => (b.onclick = () => this.close()));
     $("#m-map").onclick = () => { this.close(); g.hud.action("map"); };
     $("#m-journal").onclick = () => { this.close(); g.hud.action("journal"); };
-    $("#m-name").onchange = (e) => g.net?.setName?.(e.target.value.trim());
-    $("#m-colour").onchange = (e) => { g.colour = fromHex(e.target.value); g.makeBoatMeshes(g.boat.kind); g.net?.setColour?.(g.colour); g.save.soon(); };
+    $("#m-name").onchange = (e) => g.net?.setProfile?.({ name: e.target.value.trim() });
+    $("#m-colour").onchange = (e) => { g.colour = fromHex(e.target.value); g.makeBoatMeshes(g.boat.kind); g.net?.setProfile?.({ colour: g.colour }); g.save.soon(); };
     $("#m-cam").onclick = () => { g.freeCamera = !g.freeCamera; this.render(); };
     $("#m-snd").onclick = () => { g.audio?.setMuted?.(!g.audio.muted); this.render(); };
     $("#m-q").onclick = () => { g.kit.setQuality((g.kit.quality + 1) % 3); this.render(); };

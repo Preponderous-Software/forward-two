@@ -88,6 +88,8 @@ export class Game {
     const { Net } = await import("../net/net.js");
     this.net = new Net(this);
     try { this.net.connect(); } catch (e) { console.warn("net", e); }
+    this.races.listen();
+    if (!this.colour && this.net.profile?.colour) this.colour = this.net.profile.colour;
     this.hud = new Hud(this, this.uiRoot);
     this.input = new Input(this, this.canvas, this.uiRoot);
     this.canvas.addEventListener("pointerdown", () => { this.camState.freeUntil = performance.now() + 4000; });
