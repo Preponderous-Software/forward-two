@@ -2,17 +2,11 @@
 // run kept as a ghost, the best ghosts from the server raced alongside, and
 // group starts with whoever is at the start buoy.
 import { POINT_SOFT, PRIM } from "../render/bridge.js";
+import { COURSES, buildCourses, crossed } from "./courses.js";
+
+export { COURSES };
 import { clamp } from "../world/noise.js";
 
-// river, start fraction, end fraction, gate spacing (m)
-export const COURSES = [
-  { id: "meadow-sprint", name: "Meadow Sprint", river: "long", f0: 0.345, f1: 0.47, gap: 55, ref: 2.6 },
-  { id: "bright-chutes", name: "Brightwater Chutes", river: "bright", f0: 0.12, f1: 0.62, gap: 45, ref: 3.2 },
-  { id: "throat-run", name: "Throat Run", river: "long", f0: 0.5, f1: 0.66, gap: 40, ref: 3.9 },
-  { id: "coldwater", name: "Coldwater Run", river: "cold", f0: 0.3, f1: 0.75, gap: 60, ref: 3.0 },
-  { id: "ferry-dash", name: "Ferry Dash", river: "long", f0: 0.73, f1: 0.86, gap: 50, ref: 3.3 },
-  { id: "descent", name: "The Descent", river: "long", f0: 0.012, f1: 0.985, gap: 120, ref: 2.9 },
-];
 
 export class Races {
   constructor(game) { this.game = game; this.courses = []; this.best = {}; this.run = null; this.lobby = null; }
@@ -23,19 +17,7 @@ export class Races {
   build() {
     const w = this.game.world;
     this.listen();
-    for (const def of COURSES) {
-      const r = w.rivers.find((x) => x.id === def.river), S = r.samples;
-      const i0 = Math.round(def.f0 * (S.length - 1)), i1 = Math.round(def.f1 * (S.length - 1));
-      const gates = [];
-      let next = S[i0].s;
-      for (let i = i0; i <= i1; i++) {
-        const p = S[i];
-        if (p.s >= next || i === i1) { gates.push({ x: p.x, z: p.z, y: p.level, tx: p.tx, tz: p.tz, half: p.width / 2 + 1, s: p.s }); next = p.s + def.gap; }
-      }
-      const length = S[i1].s - S[i0].s;
-      const gold = length / def.ref, silver = gold * 1.18, bronze = gold * 1.4;
-      this.courses.push({ ...def, river: r, gates, length, medals: { gold, silver, bronze } });
-    }
+    this.courses = buildCourses(w.rivers);
   }
 
   // Group races through the server.
@@ -165,15 +147,6 @@ export class Races {
       if (!active && near) { R.labels.push(c.gates[0].x, c.gates[0].y + 4, c.gates[0].z, 15, 0.5, 1, 0.6, 1); g.labelText.push(c.name); }
     }
   }
-}
-
-function crossed(gate, b, prev) {
-  if (!prev) return false;
-  const d0 = (prev.x - gate.x) * gate.tx + (prev.z - gate.z) * gate.tz;
-  const d1 = (b.x - gate.x) * gate.tx + (b.z - gate.z) * gate.tz;
-  if (!(d0 < 0 && d1 >= 0)) return false;
-  const lat = (b.x - gate.x) * -gate.tz + (b.z - gate.z) * gate.tx;
-  return Math.abs(lat) <= gate.half + 1.5;
 }
 
 export function fmt(t) {

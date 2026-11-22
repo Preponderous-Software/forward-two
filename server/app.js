@@ -47,7 +47,7 @@ function readBody(req, limit) {
 
 // opts: {data, static, hub (Hub options), postsPerMin (per IP, default 12), log}
 export function createApp(opts = {}) {
-  const store = new GhostStore(opts.data || "./data");
+  const store = new GhostStore(opts.data || "./data", opts.courses || null);
   const hub = new Hub(opts.hub || {});
   const staticRoot = opts.static ? resolve(opts.static) : null;
   const log = opts.log || (() => {});

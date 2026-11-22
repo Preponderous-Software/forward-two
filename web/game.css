@@ -121,3 +121,6 @@ input[type=text] { font: 16px var(--font); padding: 10px 12px; border-radius: 10
 .cardpop .kicker { color: var(--accent-2); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
 .cardpop b { font-size: 22px; }
 .cardpop span { font-size: 14px; color: var(--ink-dim); }
+.online-chip { color: var(--ink-dim); cursor: pointer; font: 13px var(--font); }
+.online-chip.live { color: var(--good); }
+@media (max-width: 560px) { .online-chip { display: inline-block !important; font-size: 12px; padding: 5px 9px; } }

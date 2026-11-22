@@ -172,6 +172,7 @@ export function forestMeshes(world, density = 1, chunks = 4) {
   const builders = Array.from({ length: chunks * chunks }, () => new MeshBuilder());
   const step = 7 / Math.sqrt(density);
   let count = 0;
+  const trees = [];
   for (let z = step; z < size - step; z += step) for (let x = step; x < size - step; x += step) {
     const jx = x + (rnd() - 0.5) * step * 0.9, jz = z + (rnd() - 0.5) * step * 0.9;
     const i = Math.round(jx / cell), j = Math.round(jz / cell), c = j * n + i;
@@ -198,9 +199,10 @@ export function forestMeshes(world, density = 1, chunks = 4) {
       b.frustum(jx, h + 1.7 * s, jz, 1.6 * s, 2.3 * s, 1.5 * s, 7, g, [g[0] * 1.15, g[1] * 1.15, g[2]], rnd());
       b.frustum(jx, h + 3.2 * s, jz, 2.3 * s, 0.9 * s, 1.6 * s, 7, [g[0] * 1.2, g[1] * 1.2, g[2] * 1.1], null, rnd());
     }
+    trees.push({ x: jx, z: jz, r: 0.45 * s });
     count++;
   }
-  return { meshes: builders.filter((b) => b.nv > 0).map((b) => b.build()), count };
+  return { meshes: builders.filter((b) => b.nv > 0).map((b) => b.build()), count, trees };
 }
 
 // Boulders on the banks and in rapids (features come from sim/rapids.js).

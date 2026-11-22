@@ -73,6 +73,7 @@ export class Walker {
   }
 
   blocked(x, z) {
+    for (const t of this.game.treeIdx?.near(x, z, 2) || []) if (Math.hypot(t.x - x, t.z - z) < t.r + 0.3) return true;
     for (const c of this.game.places.camps) {
       if (Math.abs(c.x - x) > 40 || Math.abs(c.z - z) > 40) continue;
       for (const o of c.obstacles || []) if (Math.hypot(o.x - x, o.z - z) < o.r) return true;

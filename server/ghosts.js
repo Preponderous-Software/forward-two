@@ -5,11 +5,15 @@ import { mkdir, readFile, writeFile, rename } from "node:fs/promises";
 import { join } from "node:path";
 import { checkGhost, MAX_GHOST_CHARS } from "../web/src/net/ghost.js";
 import { cleanName, validCourse, validRaceMs } from "./validate.js";
+import { checkCourseRun } from "../web/src/game/courses.js";
 
 export const KEEP = 20;
 
 export class GhostStore {
-  constructor(dataDir) {
+  // courses: optional {id: course} from buildCourses(); when given, only those
+  // courses take ghosts, and a ghost must pass each course's gates in order.
+  constructor(dataDir, courses = null) {
+    this.courses = courses;
     this.dir = join(dataDir, "ghosts");
     this.cache = new Map();   // course -> entries[]
     this.queue = new Map();   // course -> Promise (write chain)
@@ -37,8 +41,13 @@ export class GhostStore {
     const { ms, ghost } = body;
     if (!validRaceMs(ms)) return { ok: false, status: 400, reason: "bad time" };
     if (typeof ghost !== "string" || ghost.length > MAX_GHOST_CHARS) return { ok: false, status: 413, reason: "ghost too large" };
+    if (this.courses && !this.courses[course]) return { ok: false, status: 404, reason: "unknown course" };
     const check = checkGhost(ghost, ms);
     if (!check.ok) return { ok: false, status: 422, reason: check.reason };
+    if (this.courses) {
+      const run = checkCourseRun(this.courses[course], check.decoded);
+      if (!run.ok) return { ok: false, status: 422, reason: run.reason };
+    }
     const name = cleanName(body.name);
     const entry = { name, ms: Math.round(ms), at: Date.now(), ghost };
     // Serialise per course so concurrent posts cannot lose each other.

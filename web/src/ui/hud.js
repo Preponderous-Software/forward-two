@@ -18,6 +18,7 @@ export class Hud {
       <div class="hud-top">
         <div class="where"><div class="where-main" id="h-where">The Long Water</div><div class="where-sub" id="h-sub"></div></div>
         <div class="hud-right">
+          <button class="clock online-chip" id="h-online" title="Who is on the river (Tab)" aria-label="Who is on the river"></button>
           <div class="clock" id="h-clock" title="Time of day"></div>
           <button class="iconbtn" id="h-map" aria-label="Map (M)"><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z M9 4v14 M15 6v14"/></svg></button>
           <button class="iconbtn" id="h-journal" aria-label="Journal (J)"><svg viewBox="0 0 24 24"><path d="M5 4h11a3 3 0 013 3v13H8a3 3 0 01-3-3z M5 17a3 3 0 013-3h11"/></svg></button>
@@ -40,6 +41,7 @@ export class Hud {
     this.lane = this.$("h-lane");
     this.markers = new Map();
     this.$("h-map").onclick = () => this.action("map");
+    this.$("h-online").onclick = () => this.action("players");
     this.$("h-journal").onclick = () => this.action("journal");
     this.$("h-menu").onclick = () => this.action("menu");
     this.flashT = 0; this.shakeT = 0; this.bannerT = 0;
@@ -133,6 +135,9 @@ export class Hud {
     if (where !== this.whereText) { this.$("h-where").textContent = where; this.whereText = where; }
     const sub = g.caller.rapid ? `${g.caller.rapid.name} · Class ${CLASS[g.caller.rapid.cls]}` : hit ? `${hit.river.name} · ${cur.cls ? "Class " + CLASS[cur.cls] : "flat water"}` : "";
     if (sub !== this.subText) { this.$("h-sub").textContent = sub; this.subText = sub; }
+    // Who's online.
+    const net = g.net, on = net?.online ? `● ${net.players.size + 1} on the river` : "○ offline";
+    if (on !== this.onlineText) { const el = this.$("h-online"); el.textContent = on; el.classList.toggle("live", !!net?.online); this.onlineText = on; }
     // Clock.
     const mins = Math.floor(g.clock * 24 * 60), hh = Math.floor(mins / 60), mm = mins % 60;
     const ct = `${g.night > 0.5 ? "☾" : "☀"} ${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;

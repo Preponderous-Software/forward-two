@@ -8,6 +8,9 @@ WORKDIR /app
 COPY package.json ./
 COPY server/ ./server/
 COPY web/src/net/ghost.js ./web/src/net/ghost.js
+# The race courses' gates are rebuilt from the world seed (rivers only).
+COPY web/src/world/ ./web/src/world/
+COPY web/src/game/courses.js ./web/src/game/courses.js
 RUN mkdir -p /data && chown node:node /data
 USER node
 VOLUME ["/data"]

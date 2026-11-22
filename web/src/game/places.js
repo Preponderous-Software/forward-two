@@ -354,7 +354,7 @@ export class Places {
     // Lights: fires always glow a little; windows and the lighthouse at night.
     for (const l of this.lights) {
       const d = Math.hypot(l.x - b.x, l.z - b.z);
-      if (d > 420) continue;
+      if (d > (l.lighthouse ? 1600 : 420)) continue;
       if (l.fire) {
         const flick = 0.85 + Math.sin(t * 13 + l.x) * 0.08 + Math.sin(t * 7.3) * 0.07;
         R.lights.push(l.x, l.y, l.z, l.r, l.c[0], l.c[1], l.c[2], l.i * flick * (0.35 + night), d < 120 ? 3 : 1, 0, 0, 0);
@@ -367,7 +367,8 @@ export class Places {
         R.lights.push(l.x, l.y, l.z, l.r, l.c[0], l.c[1], l.c[2], l.i * night, l.lighthouse ? 2 : 1, 0, 0, 0);
         if (l.lighthouse) {
           const a = t * 1.2;
-          for (let k = 1; k < 14; k++) R.points.push(l.x + Math.cos(a) * k * 3, l.y, l.z + Math.sin(a) * k * 3, 30 - k, 1.5, 1, 0.92, 0.65, 0.25 * night * (1 - k / 14), POINT_SOFT);
+          // A long sweeping beam, readable from up the river.
+          for (let k = 1; k < 36; k++) R.points.push(l.x + Math.cos(a) * k * 6, l.y - k * 0.08, l.z + Math.sin(a) * k * 6, 26 - k * 0.5, 2.5 + k * 0.35, 1, 0.92, 0.65, 0.42 * night * (1 - k / 36), POINT_SOFT);
           R.points.push(l.x, l.y, l.z, 40, 2, 1, 0.95, 0.7, night, POINT_SOFT);
         } else R.points.push(l.x, l.y, l.z, 14, 0.6, 1, 0.8, 0.45, 0.6 * night, POINT_SOFT);
       }

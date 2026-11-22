@@ -56,10 +56,11 @@ export class Game {
     this.caller = new Caller(this.features, this.rapids);
     b.mesh(rockMeshes(w, this.features));
     progress(0.5, "Growing the forests");
-    const density = w.preset === "full" ? 1 : 0.55;
+    const density = w.preset === "full" ? 1 : 0.3;   // phones get the small world: fewer trees
     const forest = forestMeshes(w, density, 4);
     forest.meshes.forEach((m) => b.mesh(m));
     this.treeCount = forest.count;
+    this.treeIdx = featureIndex(forest.trees, 12);
 
     // Systems that add their own meshes.
     progress(0.7, "Pitching the camps");
@@ -104,6 +105,7 @@ export class Game {
     this.hud.register("camp", new P.CampPanel(this, this.uiRoot));
     this.hud.register("map", new P.MapPanel(this, this.uiRoot));
     this.hud.register("journal", new P.JournalPanel(this, this.uiRoot));
+    this.hud.register("players", new P.PlayersPanel(this, this.uiRoot));
     try { const A = await import("../audio/audio.js"); this.audio = new A.Audio(this); } catch (e) { this.audio = null; }
     const unlock = () => this.audio?.unlock?.();
     addEventListener("pointerdown", unlock, { once: true }); addEventListener("keydown", unlock, { once: true });

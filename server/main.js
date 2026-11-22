@@ -2,6 +2,8 @@
 // Forward Two multiplayer service.
 //   node server/main.js [--port 8790] [--host 0.0.0.0] [--data ./data] [--static web]
 import { createApp } from "./app.js";
+import { buildSkeleton } from "../web/src/world/terrain.js";
+import { buildCourses } from "../web/src/game/courses.js";
 
 function args(argv) {
   const o = { port: Number(process.env.PORT) || 8790, host: process.env.HOST || undefined, data: process.env.F2_DATA || "./data", static: process.env.F2_STATIC || null };
@@ -21,7 +23,11 @@ function args(argv) {
 }
 
 const o = args(process.argv.slice(2));
-const app = createApp({ data: o.data, static: o.static, trustProxy: process.env.F2_TRUST_PROXY === "1", log: (s) => console.log(new Date().toISOString(), s) });
+// The world's race courses, rebuilt from the seed (rivers only; cheap), so a
+// ghost is ranked only if it ran the course's gates in order.
+const seed = Number(process.env.F2_SEED) || 1;
+const courses = Object.fromEntries(buildCourses(buildSkeleton(seed, "small").rivers).map((c) => [c.id, c]));
+const app = createApp({ data: o.data, static: o.static, courses, trustProxy: process.env.F2_TRUST_PROXY === "1", log: (s) => console.log(new Date().toISOString(), s) });
 const port = await app.listen(o.port, o.host);
 console.log(`forward-two server on :${port}${o.static ? ` (static: ${o.static})` : ""} data=${o.data}`);
 

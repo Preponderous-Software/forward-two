@@ -224,3 +224,26 @@ export class MapPanel extends Panel {
 
 function toHex(c) { return "#" + c.map((v) => Math.round(Math.min(1, Math.max(0, v)) * 255).toString(16).padStart(2, "0")).join(""); }
 function fromHex(h) { return [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16) / 255); }
+
+// Who's on the river: names, boats (or ashore), how far away.
+export class PlayersPanel extends Panel {
+  constructor(game, root) { super(game, root); this.pauses = false; }
+  render() {
+    const g = this.game, net = g.net, me = g.pos();
+    const rows = [...(net?.players?.values?.() || [])].map((p) => {
+      const s = p.samples && p.samples[p.samples.length - 1];
+      const d = s ? Math.round(Math.hypot(s.x - me.x, s.z - me.z)) : null;
+      const what = p.boat === "walker" ? "ashore" : (BOATS[p.boat]?.name || "boat").toLowerCase();
+      return { name: p.name || "Paddler", what, d };
+    }).sort((a, b) => (a.d ?? 1e9) - (b.d ?? 1e9));
+    const body = !net?.online
+      ? `<p>Offline. Ghosts and race times stay on this device until the relay answers.</p>`
+      : rows.length
+        ? `<div class="list">${rows.map((r) => `<div class="item"><span><b>${esc(r.name)}</b> <span class="tag">${esc(r.what)}</span></span><span class="small">${r.d == null ? "" : r.d < 1000 ? `${r.d} m away` : `${(r.d / 1000).toFixed(1)} km away`}</span></div>`).join("")}</div>`
+        : `<p>Nobody else is on the river right now. The ghosts of earlier runs are still on every race course.</p>`;
+    this.el.innerHTML = `<div class="card"><button class="btn ghost close" data-x>Close</button><h2>On the river</h2>
+      <p class="small">You are <b>${esc(net?.profile?.name || "Paddler")}</b>${net?.online ? ' · <span class="online">● online</span>' : ""}. Wave <kbd>1</kbd>, flare <kbd>2</kbd>, bell <kbd>3</kbd>.</p>${body}</div>`;
+    this.el.querySelector("[data-x]").onclick = () => this.close();
+  }
+  update() { if (this.isOpen()) { this.t = (this.t || 0) + 1; if (this.t % 30 === 0) this.render(); } }
+}
