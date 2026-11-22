@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
+  <meta name="theme-color" content="#0d1b24">
+  <meta name="description" content="Forward Two: an open-world river game. Paddle the Long Water from the mountains to the sea, run its rapids on the guide's call, and share the river with other paddlers.">
+  <!-- The multiplayer server. Empty: the game runs offline (local ghosts and boards). -->
+  <meta name="f2-server" content="">
+  <title>Forward Two</title>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="game.css">
+</head>
+<body>
+  <canvas id="view" tabindex="0" aria-label="The river"></canvas>
+  <div id="ui"></div>
+  <script src="engine/strata-loader.js"></script>
+  <script src="engine/strata-kit.js"></script>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
