@@ -52,6 +52,16 @@ export function createApp(opts = {}) {
   const staticRoot = opts.static ? resolve(opts.static) : null;
   const log = opts.log || (() => {});
   const postsPerMin = opts.postsPerMin ?? 12;
+  // Behind a reverse proxy every socket is the proxy's: with trustProxy the
+  // client is the LAST X-Forwarded-For entry (the one the proxy itself added).
+  const trustProxy = !!opts.trustProxy;
+  const clientOf = (req) => {
+    if (trustProxy) {
+      const xff = String(req.headers["x-forwarded-for"] || "").split(",").map((s) => s.trim()).filter(Boolean);
+      if (xff.length) return xff[xff.length - 1];
+    }
+    return req.socket.remoteAddress || "";
+  };
   const posts = new Map(); // ip -> {n, reset}
   const conns = new Set();
 
@@ -76,7 +86,7 @@ export function createApp(opts = {}) {
       return json(res, 200, { course, ghosts: await store.top(course, n) });
     }
     if (req.method !== "POST") return json(res, 405, { error: "method not allowed" });
-    if (!postAllowed(req.socket.remoteAddress || "")) return json(res, 429, { error: "slow down" });
+    if (!postAllowed(clientOf(req))) return json(res, 429, { error: "slow down" });
     let body;
     try { body = JSON.parse(await readBody(req, MAX_BODY)); } catch (e) { return json(res, e.status || 400, { error: e.status ? "too large" : "bad json" }); }
     const r = await store.submit(course, body);

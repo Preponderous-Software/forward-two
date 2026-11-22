@@ -21,7 +21,7 @@ function args(argv) {
 }
 
 const o = args(process.argv.slice(2));
-const app = createApp({ data: o.data, static: o.static, log: (s) => console.log(new Date().toISOString(), s) });
+const app = createApp({ data: o.data, static: o.static, trustProxy: process.env.F2_TRUST_PROXY === "1", log: (s) => console.log(new Date().toISOString(), s) });
 const port = await app.listen(o.port, o.host);
 console.log(`forward-two server on :${port}${o.static ? ` (static: ${o.static})` : ""} data=${o.data}`);
 

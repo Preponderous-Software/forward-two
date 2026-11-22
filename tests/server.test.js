@@ -391,3 +391,17 @@ test("Net client against the server: online, players, emotes, ghosts", T, async 
     assert.equal(n2.players.size, 0);
   } finally { clearInterval(pump); n1.disconnect(); n2.disconnect(); }
 });
+
+test("behind a proxy, the POST limit is per forwarded client, not per socket", async () => {
+  const dir = await mkdtemp(join(tmpdir(), "f2-proxy-"));
+  const app = createApp({ data: dir, trustProxy: true, postsPerMin: 2 });
+  const port = await app.listen(0, "127.0.0.1");
+  const post = (ip) => fetch(`http://127.0.0.1:${port}/api/ghosts/proxy-test`, {
+    method: "POST", headers: { "content-type": "application/json", "x-forwarded-for": `9.9.9.9, ${ip}` }, body: "{}",
+  }).then((r) => r.status);
+  const a = [await post("1.1.1.1"), await post("1.1.1.1"), await post("1.1.1.1")];
+  assert.equal(a[2], 429, "third post from one client is limited");
+  assert.notEqual(await post("2.2.2.2"), 429, "another client is not");
+  await app.close();
+  await rm(dir, { recursive: true, force: true });
+});
