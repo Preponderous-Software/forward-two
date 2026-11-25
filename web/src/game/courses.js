@@ -3,14 +3,16 @@
 // relay (server/) rebuilds the same gates from the same seed to check that a
 // submitted ghost really ran them.
 
-// river, start fraction, end fraction, gate spacing (m), gold-medal pace (m/s)
+// river, start fraction, end fraction, gate spacing (m), gold-medal pace (m/s).
+// 0.2.1 rescaled each pace by how much faster a run got when whitewater sped
+// up (a bot that paddles on flat water and rides the rapids, seed 1, full world).
 export const COURSES = [
-  { id: "meadow-sprint", name: "Meadow Sprint", river: "long", f0: 0.345, f1: 0.47, gap: 55, ref: 2.6 },
-  { id: "bright-chutes", name: "Brightwater Chutes", river: "bright", f0: 0.12, f1: 0.62, gap: 45, ref: 3.2 },
-  { id: "throat-run", name: "Throat Run", river: "long", f0: 0.5, f1: 0.66, gap: 40, ref: 3.9 },
-  { id: "coldwater", name: "Coldwater Run", river: "cold", f0: 0.3, f1: 0.75, gap: 60, ref: 3.0 },
-  { id: "ferry-dash", name: "Ferry Dash", river: "long", f0: 0.73, f1: 0.86, gap: 50, ref: 3.3 },
-  { id: "descent", name: "The Descent", river: "long", f0: 0.012, f1: 0.985, gap: 120, ref: 2.9 },
+  { id: "meadow-sprint", name: "Meadow Sprint", river: "long", f0: 0.345, f1: 0.47, gap: 55, ref: 2.75 },
+  { id: "bright-chutes", name: "Brightwater Chutes", river: "bright", f0: 0.12, f1: 0.62, gap: 45, ref: 4.7 },
+  { id: "throat-run", name: "Throat Run", river: "long", f0: 0.5, f1: 0.66, gap: 40, ref: 5.35 },
+  { id: "coldwater", name: "Coldwater Run", river: "cold", f0: 0.3, f1: 0.75, gap: 60, ref: 4.2 },
+  { id: "ferry-dash", name: "Ferry Dash", river: "long", f0: 0.73, f1: 0.86, gap: 50, ref: 3.9 },
+  { id: "descent", name: "The Descent", river: "long", f0: 0.012, f1: 0.985, gap: 120, ref: 3.6 },
 ];
 
 // The courses on a set of rivers (world.rivers or buildSkeleton(seed).rivers).

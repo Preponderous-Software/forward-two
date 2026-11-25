@@ -48,7 +48,7 @@ A ghost is ranked only if:
 
 - it decodes and is at most 64 KB;
 - its times increase, with no gap over 2 s;
-- every step stays under 12 m/s;
+- every step stays under 16 m/s;
 - it stays inside the world (0 to 3100 m);
 - its duration matches `ms` within 1 s.
 

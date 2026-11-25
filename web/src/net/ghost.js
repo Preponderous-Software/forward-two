@@ -167,7 +167,9 @@ export class GhostRecorder {
 
 // Shared plausibility check (the server uses it before ranking; the client can
 // use it before saving locally). Returns {ok, decoded} or {ok:false, reason}.
-export const GHOST_LIMITS = { maxSpeed: 12, worldMin: 0, worldMax: 3100, slackMs: 1000, maxGapMs: 2000 };
+// maxSpeed: a kayak at full stroke down 0.2.1's faster class V water reaches
+// about 13 m/s; 16 leaves headroom and still rejects teleports.
+export const GHOST_LIMITS = { maxSpeed: 16, worldMin: 0, worldMax: 3100, slackMs: 1000, maxGapMs: 2000 };
 
 export function checkGhost(str, ms, limits = GHOST_LIMITS) {
   if (typeof str !== "string" || str.length > MAX_GHOST_CHARS) return { ok: false, reason: "ghost too large" };

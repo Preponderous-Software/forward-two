@@ -56,3 +56,14 @@ test("the relay rejects unknown courses and gate-skipping ghosts, and ranks hone
     await rm(dir, { recursive: true, force: true });
   }
 });
+
+test("0.2.1: whitewater is fast enough that a rapid takes about a minute", async () => {
+  const { flowSpeed } = await import("../web/src/world/rivers.js");
+  const { GHOST_LIMITS } = await import("../web/src/net/ghost.js");
+  const at = (cls, width) => flowSpeed({ cls, width });
+  assert.ok(at(3, 14) >= 3 && at(3, 14) <= 4.5, `class III ${at(3, 14)}`);
+  assert.equal(at(0, 14), 0.45);   // flat water unchanged
+  assert.equal(at(1, 14), 1.0);
+  // A kayak at top speed (7 m/s through the water) on the fastest class V stays a legal ghost.
+  assert.ok(at(5, 6) + 7 < GHOST_LIMITS.maxSpeed, `max ${at(5, 6) + 7}`);
+});
