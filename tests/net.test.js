@@ -104,8 +104,8 @@ test("checkGhost rejects teleports, bad timing and wrong durations", () => {
   // Teleport: one sample jumps 50 m.
   const tele = good.map((s, i) => (i === 150 ? { ...s, x: s.x + 50 } : s));
   assert.match(checkGhost(encode(tele), ms).reason, /fast/);
-  // Steady 13 m/s is too fast.
-  assert.match(checkGhost(encode(run(300, 13)), ms).reason, /fast/);
+  // Steady 17 m/s is too fast (the limit is 16 since 0.2.1).
+  assert.match(checkGhost(encode(run(300, 17)), ms).reason, /fast/);
   // Time going backwards.
   const back = good.map((s, i) => (i === 100 ? { ...s, t: good[98].t } : s));
   assert.match(checkGhost(encode(back), ms).reason, /increasing/);

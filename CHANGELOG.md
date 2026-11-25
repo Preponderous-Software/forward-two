@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+## 0.2.1 (2026-11-24)
+
+### Feel
+- Whitewater runs faster: class II water is about 45% quicker, class III 60%,
+  class IV 45% and class V 30%, so a named rapid goes by at a run, not a drift. Gorge
+  Gate (class III, 320 m) takes about 1:25 instead of 2:07 with every call
+  hit. Flat water and Mirror Lake are unchanged.
+- Race medal times are rescaled to match, so a medal is as hard to earn as
+  before. Board times set in 0.2.0 on courses with rapids were run on slower
+  water, so they are easier to beat.
+- The relay accepts ghosts up to 16 m/s (was 12), since a kayak at full stroke
+  down the fastest water now passes 12.
+
 ## 0.2.0 (2026-11-24)
 
 A polish release: the boat steers the right way, the river looks like a river,

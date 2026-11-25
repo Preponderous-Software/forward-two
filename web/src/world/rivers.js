@@ -145,7 +145,11 @@ export function buildRivers(size, seed, step = 3) {
 }
 
 // Gradient-based speed (m/s) for a river sample: steeper and narrower is faster.
+// 0.2.1: whitewater runs faster (class III 2.5 -> 4.0 m/s before the width
+// factor): Gorge Gate (320 m) takes about 1:25, not 2:07. Flat water
+// (class 0-1) is unchanged. Medal paces in game/courses.js were rescaled to match.
+export const FLOW_BASE = [0.45, 1.0, 2.5, 4.0, 4.8, 5.4];
 export function flowSpeed(sample) {
-  const base = [0.45, 1.0, 1.7, 2.5, 3.3, 4.2][sample.cls] || 0.4;
+  const base = FLOW_BASE[sample.cls] || 0.4;
   return base * Math.min(1.35, Math.max(0.75, 14 / Math.max(6, sample.width)) ** 0.35);
 }
