@@ -1,0 +1,55 @@
+{
+  "bothOnlineMs": 8065,
+  "offlineDetectMs": 274,
+  "raceSurvivesRelayLoss": true,
+  "reconnectMs": 6033,
+  "mpErrors": [
+    "A error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "A error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "B error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "B error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "A error: WebSocket connection to 'ws://127.0.0.1:8794/ws?seed=1&room=river' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "B error: WebSocket connection to 'ws://127.0.0.1:8794/ws?seed=1&room=river' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "A error: WebSocket connection to 'ws://127.0.0.1:8794/ws?seed=1&room=river' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "B error: WebSocket connection to 'ws://127.0.0.1:8794/ws?seed=1&room=river' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "A error: WebSocket connection to 'ws://127.0.0.1:8794/ws?seed=1&room=river' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED",
+    "B error: WebSocket connection to 'ws://127.0.0.1:8794/ws?seed=1&room=river' failed: Error in connection establishment: net::ERR_CONNECTION_REFUSED"
+  ],
+  "mpState": {
+    "online": true,
+    "players": 1,
+    "run": true
+  },
+  "corruptWithBackup": {
+    "boat": "canoe",
+    "pay": 87,
+    "notice": "Your save was damaged, so the backup from 11/20/2026, 3:00:00 AM was loaded.",
+    "corrupt": "{\"v\":1,\"boat\":\"kay",
+    "toasts": [
+      "Your save was damaged, so the backup from 11/20/2026, 3:00:00 AM was loaded."
+    ]
+  },
+  "futureFieldKept": "kept",
+  "corruptNoBackup": {
+    "boat": "raft",
+    "notice": "Your save couldn't be read, so this is a fresh start. The old save is kept on this device.",
+    "corrupt": "garbage\u0000"
+  },
+  "blockedStorage": {
+    "booted": true,
+    "wrote": false
+  },
+  "saveErrors": [
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S warning: save: primary unusable: not JSON",
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S warning: save: primary unusable: not JSON",
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S warning: save: write failed SecurityError: denied"
+  ]
+}

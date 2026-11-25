@@ -1,0 +1,46 @@
+js : "go"
+sim start {"strokes":0,"judged":{},"events":[]}
+start {"t":"1.5","x":"1138","z":"1286","sp":"0.49","hd":"12","yaw":"-168","dist":"15.3","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Press W to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js bow screen x before A: 640
+js : true
+sim A held {"strokes":0,"judged":{},"events":[]}
+A held {"t":"2.8","x":"1140","z":"1286","sp":"1.52","hd":"-43","yaw":"-192","dist":"15.7","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Press W to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js : true
+ {"t":"2.9","x":"1140","z":"1286","sp":"1.51","hd":"-44","yaw":"-193","dist":"15.7","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Press W to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js bow screen x after A (should be smaller): 530
+js boat screen x: 665
+sim after A {"strokes":0,"judged":{},"events":[]}
+after A {"t":"3.0","x":"1140","z":"1286","sp":"1.41","hd":"-52","yaw":"-196","dist":"15.7","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Press W to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js : true
+sim D {"strokes":0,"judged":{},"events":[]}
+D {"t":"5.6","x":"1144","z":"1285","sp":"1.92","hd":"45","yaw":"-169","dist":"16.1","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Press W to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js : true
+ {"t":"5.7","x":"1144","z":"1285","sp":"1.89","hd":"47","yaw":"-168","dist":"16.1","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Press W to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js bow screen x after D: 760
+sim pilot to rapid {"strokes":268,"judged":{},"events":[],"stoppedAt":"130.4"}
+pilot to rapid {"t":"130.4","x":"1534","z":"1472","sp":"3.97","hd":"12","yaw":"-166","dist":"17.5","pitch":"0.37","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.00","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 114.8 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+sim in rapid {"strokes":2,"judged":{"perfect":2},"events":[]}
+in rapid {"t":"134.5","x":"1544","z":"1475","sp":"3.14","hd":"12","yaw":"-162","dist":"19.5","pitch":"0.48","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.18","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 118.9 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+rapid {"t":"134.5","x":"1544","z":"1475","sp":"3.11","hd":"12","yaw":"-162","dist":"19.5","pitch":"0.48","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.18","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 118.9 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+sim rapid run {"strokes":11,"judged":{"perfect":11},"events":[]}
+rapid run {"t":"159.6","x":"1597","z":"1493","sp":"2.03","hd":"12","yaw":"-148","dist":"19.1","pitch":"0.48","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.72","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 9/10 · 144.0 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+rapid later {"t":"159.6","x":"1597","z":"1493","sp":"2.00","hd":"12","yaw":"-148","dist":"19.1","pitch":"0.48","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.72","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 9/10 · 144.0 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+js shuttle: "Gorge Lookout"
+sim camp {"strokes":0,"judged":{},"events":[]}
+camp {"t":"161.1","x":"1698","z":"1586","sp":"0.75","hd":"45","yaw":"-135","dist":"18.0","pitch":"0.47","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.00","where":"The Gorge","sub":"Gorge Gate · Class III","prompt":"Gorge Lookout · E go ashore and walk around","flash":"Throat Run: go!","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+js ashore?: true
+sim ashore {"strokes":0,"judged":{},"events":[]}
+ashore {"t":"162.2","x":"1697","z":"1590","sp":"0.00","hd":"45","yaw":"-45","dist":"7.5","pitch":"0.32","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Gorge","sub":"The Long Water · Class III","prompt":"WASD walk · Shift run · drag to look","flash":"Throat Run: go!","coach":"","walker":true,"paused":false}
+js walker pos saved: "saved"
+js : true
+sim walk D {"strokes":0,"judged":{},"events":[]}
+walk D {"t":"163.4","x":"1697","z":"1590","sp":"0.00","hd":"45","yaw":"-45","dist":"7.5","pitch":"0.32","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Gorge","sub":"The Long Water · Class III","prompt":"E Read the job board","flash":"","coach":"","walker":true,"paused":false}
+js : true
+ {"t":"163.5","x":"1697","z":"1590","sp":"0.00","hd":"45","yaw":"-45","dist":"7.5","pitch":"0.32","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Gorge","sub":"The Long Water · Class III","prompt":"E Read the job board","flash":"","coach":"","walker":true,"paused":false}
+js walker moved right on screen?: {"from":384,"to":660,"movedRight":true}
+sim walking {"strokes":0,"judged":{},"events":[]}
+walking {"t":"163.8","x":"1697","z":"1590","sp":"0.00","hd":"45","yaw":"-45","dist":"7.5","pitch":"0.32","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Gorge","sub":"The Long Water · Class III","prompt":"E Read the job board","flash":"","coach":"","walker":true,"paused":false}
+--- console
+[error] strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))
+[log] forward-two: Strata 0.10.0 on WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium)) (kit 1.3)
+[info] Autofocus processing was blocked because a document already has a focused element.

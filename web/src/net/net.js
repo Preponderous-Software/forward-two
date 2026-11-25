@@ -8,6 +8,11 @@ import { decode, checkGhost } from "./ghost.js";
 const EMOTES = new Set(["wave", "flare", "bell"]);
 const COURSE_RE = /^[a-z0-9-]{1,40}$/;
 const LOCAL_KEEP = 10;
+const okCourse = (c) => typeof c === "string" && COURSE_RE.test(c);
+const CONNECT_MS = 8000;
+export const QUEUE_KEY = "f2.ghosts.queue";   // runs waiting for the online board
+const QUEUE_MAX = 10, QUEUE_DAYS = 7;              // give up on a connection that never opens
+const BOAT_KINDS = new Set(["raft", "kayak", "canoe", "dory", "walker"]);
 const PROFILE_KEY = "f2.profile";
 const BIRDS = ["Heron", "Otter", "Kingfisher", "Dipper", "Osprey", "Beaver", "Salmon", "Merganser", "Egret", "Plover", "Wren", "Teal", "Grebe", "Trout", "Mink", "Loon"];
 
@@ -101,6 +106,11 @@ export class Net {
     this.urls = this.findServer();
     this.room = this.query("room") || "river";
     this.profile = this.loadProfile();
+    // Back in view or back online: try the relay again now, not after the backoff.
+    if (typeof globalThis.addEventListener === "function" && globalThis.document) {
+      globalThis.addEventListener("online", () => this.retrySoon());
+      globalThis.document.addEventListener?.("visibilitychange", () => { if (globalThis.document.visibilityState === "visible") this.retrySoon(); });
+    }
   }
 
   // ---------------------------------------------------------- setup
@@ -164,26 +174,39 @@ export class Net {
     const qs = `seed=${encodeURIComponent(String(seed ?? 0))}&room=${encodeURIComponent(this.room)}`;
     try { ws = new WebSocket(`${this.urls.ws}${this.urls.ws.includes("?") ? "&" : "?"}${qs}`); } catch { return this.scheduleRetry(); }
     this.ws = ws;
+    // A connection that hangs (a black-holed relay) is given up after a while.
+    const openTimer = setTimeout(() => { if (this.ws === ws && ws.readyState === 0) { try { ws.close(); } catch { /* ignore */ } this.lost(ws, 1006); } }, CONNECT_MS);
     ws.onopen = () => {
-      this.backoff = 1000;
+      clearTimeout(openTimer);
       this.sendHello();
       this.timeSamples = [];
       for (let i = 0; i < 3; i++) setTimeout(() => this.ping(), i * 300);
     };
     ws.onmessage = (e) => {
+      if (this.ws !== ws) return;
       let m;
       try { m = JSON.parse(e.data); } catch { return; }
-      this.handle(m);
+      try { this.handle(m); } catch (err) { console.warn("net message", err); }
     };
-    ws.onclose = () => {
-      const was = this.online;
-      this.ws = null; this.online = false; this.id = 0;
-      this.players.clear(); this.races.clear();
-      if (was) this.emit("offline", {});
-      this.scheduleRetry();
-    };
+    ws.onclose = (e) => { clearTimeout(openTimer); this.lost(ws, e?.code); };
     ws.onerror = () => { /* onclose follows */ };
   }
+
+  // The connection is gone (closed, refused or timed out): go offline and
+  // schedule a retry. A relay that turned us away (full, busy, rate limit)
+  // is left alone for longer.
+  lost(ws, code) {
+    if (this.ws !== ws) return;
+    const was = this.online;
+    this.ws = null; this.online = false; this.id = 0;
+    this.players.clear(); this.races.clear();
+    if (was) this.emit("offline", { code });
+    if (code === 1008 || code === 1013) this.backoff = Math.max(this.backoff, 15_000);
+    if (this.urls) this.scheduleRetry();
+  }
+
+  // Try again soon (the page came back into view, or the device came back online).
+  retrySoon() { if (!this.ws && this.urls) this.retryAt = Math.min(this.retryAt || Infinity, Date.now() + 250); }
 
   scheduleRetry() {
     const jitter = 0.75 + Math.random() * 0.5;
@@ -193,7 +216,9 @@ export class Net {
 
   disconnect() {
     this.urls = null;
-    try { this.ws?.close(1000, "bye"); } catch { /* ignore */ }
+    const ws = this.ws;
+    try { ws?.close(1000, "bye"); } catch { /* ignore */ }
+    if (ws) this.lost(ws, 1000);
   }
 
   send(msg) {
@@ -212,19 +237,24 @@ export class Net {
   // ---------------------------------------------------------- messages
 
   handle(m) {
+    if (!m || typeof m !== "object" || typeof m.t !== "string") return;
     switch (m.t) {
       case "welcome":
-        this.online = true; this.id = m.id;
+        if (!Number.isInteger(m.id) || !Number.isFinite(m.now)) return;
+        this.online = true; this.id = m.id; this.backoff = 1000;
         this.serverTimeOffset = this.timeSamples.length ? this.serverTimeOffset : m.now - Date.now();
         this.players.clear();
-        for (const p of m.players || []) {
+        for (const p of Array.isArray(m.players) ? m.players : []) {
+          if (!p || !Number.isInteger(p.id)) continue;
           this.addPlayer(p);
           if (p.state) this.pushSample(p.id, m.now, p.state);
         }
-        for (const r of m.races || []) this.races.set(r.course, { phase: "lobby", at: r.at, ready: r.ready, racers: null, results: [] });
+        for (const r of Array.isArray(m.races) ? m.races : []) if (r && okCourse(r.course)) this.races.set(r.course, { phase: "lobby", at: r.at, ready: r.ready, racers: null, results: [] });
         this.emit("online", { id: m.id, name: m.name });
+        this.flushGhosts().catch(() => { /* try again next time */ });
         return;
       case "join": {
+        if (!Number.isInteger(m.id)) return;
         const had = this.players.has(m.id);
         this.addPlayer(m);
         if (!had) this.emit("join", this.players.get(m.id));
@@ -237,7 +267,8 @@ export class Net {
         return;
       }
       case "states":
-        for (const s of m.list || []) if (s.id !== this.id) this.pushSample(s.id, m.at, s);
+        if (!Array.isArray(m.list) || !Number.isFinite(m.at)) return;
+        for (const s of m.list) if (s && s.id !== this.id) this.pushSample(s.id, m.at, s);
         return;
       case "emote":
         if (EMOTES.has(m.kind) && m.id !== this.id) this.emit("emote", { id: m.id, kind: m.kind, player: this.players.get(m.id) });
@@ -252,15 +283,18 @@ export class Net {
         return;
       }
       case "race-lobby":
+        if (!okCourse(m.course) || !Number.isFinite(m.at)) return;
         this.races.set(m.course, { phase: "lobby", at: m.at, ready: m.ready, racers: null, results: [] });
         this.emit("race-lobby", { course: m.course, at: m.at, ready: m.ready, startsIn: m.at - this.serverNow });
         return;
       case "race-start": {
+        if (!okCourse(m.course) || !Number.isFinite(m.at) || !Array.isArray(m.racers)) return;
         this.races.set(m.course, { phase: "racing", at: m.at, ready: [], racers: m.racers, results: [] });
         this.emit("race-start", { course: m.course, at: m.at, racers: m.racers, mine: (m.racers || []).includes(this.id), elapsed: this.serverNow - m.at });
         return;
       }
       case "race-results": {
+        if (!okCourse(m.course) || !Array.isArray(m.results)) return;
         const r = this.races.get(m.course);
         if (r) r.results = m.results;
         if (m.final) this.races.delete(m.course);
@@ -279,18 +313,19 @@ export class Net {
   addPlayer(p) {
     const old = this.players.get(p.id);
     const entry = old || { id: p.id, samples: [] };
-    entry.name = cleanName(p.name); entry.colour = p.colour; entry.boat = p.boat;
+    const okColour = Array.isArray(p.colour) && p.colour.length === 3 && p.colour.every((v) => Number.isFinite(v) && v >= 0 && v <= 1);
+    entry.name = cleanName(p.name); entry.colour = okColour ? p.colour : [0.85, 0.24, 0.12]; entry.boat = BOAT_KINDS.has(p.boat) ? p.boat : "raft";
     this.players.set(p.id, entry);
     return entry;
   }
 
   pushSample(id, at, s) {
     const p = this.players.get(id);
-    if (!p) return;
-    if (s.boat && s.boat !== p.boat) p.boat = s.boat;
+    if (!p || !s || ![s.x, s.z, s.y, s.h].every(Number.isFinite)) return;
+    if (BOAT_KINDS.has(s.boat) && s.boat !== p.boat) p.boat = s.boat;
     const last = p.samples[p.samples.length - 1];
     if (last && at <= last.at) return;
-    p.samples.push({ at, x: s.x, z: s.z, y: s.y, h: s.h, vx: s.vx, vz: s.vz, swim: !!s.swim });
+    p.samples.push({ at, x: s.x, z: s.z, y: s.y, h: s.h, vx: Number.isFinite(s.vx) ? s.vx : 0, vz: Number.isFinite(s.vz) ? s.vz : 0, swim: !!s.swim });
     if (p.samples.length > 30) p.samples.splice(0, p.samples.length - 30);
   }
 
@@ -354,15 +389,57 @@ export class Net {
     const nm = cleanName(name ?? this.profile.name);
     const local = localSubmit(courseId, { name: nm, ms, ghost });
     if (!this.urls) return local;
+    const item = { course: courseId, name: nm, ms: Math.round(ms), ghost, at: Date.now() };
     try {
       const { status, body } = await this.http(`/api/ghosts/${courseId}`, {
         method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: nm, ms: Math.round(ms), ghost }),
       });
       if (status >= 200 && status < 300) return { ok: true, local: false, rank: body.rank ?? null, localRank: local.rank };
+      if (status === 429 || status >= 500) { this.queueGhost(item); return { ...local, queued: true, error: body.error || `HTTP ${status}` }; }
       return { ok: false, local: false, error: body.error || `HTTP ${status}`, localRank: local.rank };
     } catch {
-      return local;
+      // Unreachable or timed out (6 s): kept locally, uploaded when the relay is back.
+      this.queueGhost(item);
+      return { ...local, queued: true };
     }
+  }
+
+  queued() {
+    const q = readJson(QUEUE_KEY, []);
+    const old = Date.now() - QUEUE_DAYS * 86_400_000;
+    return Array.isArray(q) ? q.filter((e) => e && okCourse(e.course) && Number.isFinite(e.ms) && typeof e.ghost === "string" && typeof e.name === "string" && e.at > old) : [];
+  }
+
+  queueGhost(item) {
+    const same = (e) => e.course === item.course && e.name === item.name;
+    let q = this.queued();
+    if (q.some((e) => same(e) && e.ms <= item.ms)) return false;   // a better run is already waiting
+    q = q.filter((e) => !same(e));
+    q.push(item);
+    return writeJson(QUEUE_KEY, q.slice(-QUEUE_MAX));
+  }
+
+  // Posts queued runs, oldest first. A run the board refuses (4xx) is dropped;
+  // a busy or unreachable relay leaves the rest for next time.
+  async flushGhosts() {
+    if (this.flushing || !this.urls) return 0;
+    this.flushing = true;
+    let sent = 0;
+    try {
+      for (const e of this.queued()) {
+        let status;
+        try {
+          ({ status } = await this.http(`/api/ghosts/${e.course}`, {
+            method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: e.name, ms: e.ms, ghost: e.ghost }),
+          }));
+        } catch { break; }
+        if (status === 429 || status >= 500) break;
+        writeJson(QUEUE_KEY, this.queued().filter((x) => !(x.course === e.course && x.name === e.name && x.ms === e.ms)));
+        if (status >= 200 && status < 300) sent++;
+      }
+    } finally { this.flushing = false; }
+    if (sent) this.emit("ghosts-sent", { n: sent });
+    return sent;
   }
 
   // Top n ghosts, each {name, ms, ghost, decoded}. Server first, then local.

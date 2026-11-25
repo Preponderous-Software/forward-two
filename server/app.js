@@ -48,7 +48,10 @@ function readBody(req, limit) {
 // opts: {data, static, hub (Hub options), postsPerMin (per IP, default 12), log}
 export function createApp(opts = {}) {
   const store = new GhostStore(opts.data || "./data", opts.courses || null);
-  const hub = new Hub(opts.hub || {});
+  const hub = new Hub({ courses: opts.courses ? new Set(Object.keys(opts.courses)) : null, log: opts.log, ...(opts.hub || {}) });
+  // Live connections: a cap overall and per client address.
+  const maxConns = opts.maxConns ?? 2000, maxConnsPerIp = opts.maxConnsPerIp ?? 8;
+  const perIp = new Map(); // ip -> open connections
   const staticRoot = opts.static ? resolve(opts.static) : null;
   const log = opts.log || (() => {});
   const postsPerMin = opts.postsPerMin ?? 12;
@@ -130,11 +133,23 @@ export function createApp(opts = {}) {
   });
 
   server.on("upgrade", (req, socket, head) => {
+    socket.on("error", () => socket.destroy());
+    const ip = clientOf(req);
+    if (conns.size >= maxConns || (perIp.get(ip) || 0) >= maxConnsPerIp) {
+      socket.end("HTTP/1.1 503 Service Unavailable\r\nRetry-After: 30\r\nConnection: close\r\nContent-Length: 0\r\n\r\n");
+      return;
+    }
     const conn = upgrade(req, socket, head);
     if (!conn) return;
     conns.add(conn);
-    conn.on("close", () => conns.delete(conn));
-    const url = new URL(req.url, "http://x");
+    perIp.set(ip, (perIp.get(ip) || 0) + 1);
+    conn.on("close", () => {
+      conns.delete(conn);
+      const n = (perIp.get(ip) || 1) - 1;
+      if (n > 0) perIp.set(ip, n); else perIp.delete(ip);
+    });
+    let url;
+    try { url = new URL(req.url, "http://x"); } catch { url = new URL("http://x/"); }
     hub.attach(conn, { seed: url.searchParams.get("seed") ?? undefined, room: url.searchParams.get("room") ?? undefined });
     if (head && head.length) conn.feed(head);
   });

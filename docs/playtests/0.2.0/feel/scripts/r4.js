@@ -1,0 +1,27 @@
+// Round 4: verify the fixes on a keyboard: A turns left on screen, D walks right,
+// the lane sits under the boat in a rapid, the prompt clears the boat.
+const sx = (expr) => `(() => { const k = __f2.kit; const p = (${expr}); const q = k.project(p[0], p[1], p[2]); return q ? Math.round(q.x) : null; })()`;
+module.exports = { query: '&new=1&coach=1', steps: [
+  { js: "document.getElementById('t-go')?.click(); 'go'" },
+  { label: 'start', sim: 1.5, shot: 'r4-01-start', page: true },
+  { js: sx("[__f2.boat.x + Math.cos(__f2.boat.heading) * 8, __f2.boat.y, __f2.boat.z + Math.sin(__f2.boat.heading) * 8]"), label: 'bow screen x before A' },
+  { js: "__key('KeyA', true)" }, { label: 'A held', sim: 1.3 }, { js: "__key('KeyA', false)" }, { frames: 1 },
+  { js: sx("[__f2.boat.x + Math.cos(__f2.boat.heading) * 8, __f2.boat.y, __f2.boat.z + Math.sin(__f2.boat.heading) * 8]"), label: 'bow screen x after A (should be smaller)' },
+  { js: sx("[__f2.boat.x, __f2.boat.y, __f2.boat.z]"), label: 'boat screen x' },
+  { label: 'after A', sim: 0.1, shot: 'r4-02-after-A', page: true },
+  { js: "__key('KeyD', true)" }, { label: 'D', sim: 2.6 }, { js: "__key('KeyD', false)" }, { frames: 1 },
+  { js: sx("[__f2.boat.x + Math.cos(__f2.boat.heading) * 8, __f2.boat.y, __f2.boat.z + Math.sin(__f2.boat.heading) * 8]"), label: 'bow screen x after D' },
+  { label: 'pilot to rapid', sim: 240, opts: { pilot: 'down', until: 'g.caller.rapid' } },
+  { label: 'in rapid', sim: 4, opts: { bot: 'perfect' } },
+  { label: 'rapid', frames: 1, shot: 'r4-03-rapid-lane', page: true },
+  { label: 'rapid run', sim: 25, opts: { bot: 'perfect' } },
+  { label: 'rapid later', frames: 1, shot: 'r4-04-rapid-later', page: true },
+  { js: "(() => { const g = __f2, c = g.places.camps.find((k) => k.id === 'lookout'); g.shuttleTo(c); const b = g.boat; b.x = c.x + c.nx * 8; b.z = c.z + c.nz * 8; return g.places.campNear(b.x, b.z)?.name; })()", label: 'shuttle' },
+  { label: 'camp', sim: 1.5, shot: 'r4-05-camp-prompt', page: true },
+  { js: "__key('KeyE', true); __key('KeyE', false); __f2.walker.active", label: 'ashore?' },
+  { label: 'ashore', sim: 1 },
+  { js: "(window.__w0 = [__f2.walker.x, __f2.walker.y + 1, __f2.walker.z], 'saved')", label: 'walker pos saved' },
+  { js: "__key('KeyD', true)" }, { label: 'walk D', sim: 1.2 }, { js: "__key('KeyD', false)" }, { frames: 1 },
+  { js: "(() => { const k = __f2.kit, w = __f2.walker, a = k.project(...window.__w0), b = k.project(w.x, w.y + 1, w.z); return { from: Math.round(a.x), to: Math.round(b.x), movedRight: b.x > a.x }; })()", label: 'walker moved right on screen?' },
+  { label: 'walking', sim: 0.2, shot: 'r4-06-walking', page: true },
+]};

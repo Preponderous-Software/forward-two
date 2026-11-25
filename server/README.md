@@ -11,6 +11,9 @@ npm run serve        # the game and the service on :8790
 
 `--static <dir>` also serves the game's files, so one process can run the whole
 game locally. Environment fallbacks: `PORT`, `HOST`, `F2_DATA`, `F2_STATIC`.
+Behind a reverse proxy, set `F2_TRUST_PROXY=1` so the per-address limits (ghost
+posts, live connections) use the last address in `X-Forwarded-For`; without it
+every player shares the proxy's address.
 
 The game finds the service from `<meta name="f2-server" content="...">` in
 `web/index.html`, or from `?server=` in the page URL. Either can be a ws(s) URL
@@ -50,7 +53,8 @@ A ghost is ranked only if:
 - its duration matches `ms` within 1 s.
 
 Each name keeps only its best run. Data is stored in
-`<data>/ghosts/<course>.json`. Each write goes to a temp file and is then renamed
+`<data>/ghosts/<course>.json`. A board file that can't be read is renamed to
+`<course>.json.corrupt-<time>` and kept, never overwritten. Each write goes to a temp file and is then renamed
 into place, and writes for one course run one at a time.
 
 ## Live protocol
@@ -67,7 +71,7 @@ Client to server:
 | `hello` | `name, colour [r,g,b] 0..1 or "#rrggbb", boat, seed?, room?` | Must come first. Sending it again updates the profile. Names are printable ASCII, 1 to 16 characters after trimming, otherwise `Paddler`. |
 | `state` | `x, z, y, h, vx, vz, boat, swim` | About 10 Hz. x and z must be 0 to 3100, speed under 30 m/s, and every number finite. Invalid states are dropped. |
 | `emote` | `kind`: `wave` \| `flare` \| `bell` | At most one a second. There is no free text. |
-| `race-ready` | `course` | Opens or joins the course's lobby. |
+| `race-ready` | `course` | Opens or joins the course's lobby. Only the world's real courses are accepted. |
 | `race-finish` | `course, ms` | Only racers can send it. `ms` cannot exceed the server's elapsed time plus 2 s. |
 | `time` | `c` (client ms) | The server answers `{t:"time", c, s}`. |
 
@@ -82,15 +86,21 @@ Server to client:
 | `race-lobby` | `course, at` (start, server ms), `ready:[ids], now`. The lobby lasts 10 s from the first ready. |
 | `race-start` | `course, at, racers:[ids]` |
 | `race-results` | `course, final, results:[{id,name,ms,place}]`. Sent after each finish, and with `final` once every racer has finished or after 30 minutes. |
-| `race-busy` | `course, at` when a race is already running there |
+| `race-busy` | `course, at` when a race is already running there, or `at: 0` when the room already has 16 open lobbies and races |
 | `time` | `c, s` |
-| `error` | `code` (`full`), `msg` |
+| `error` | `code` (`full`: the room has 32 players; `busy`: the relay has 500 rooms), `msg` |
 
 Abuse handling:
 
+- At most 2000 live connections in all and 8 per client address; beyond
+  that the upgrade is answered `503` with `Retry-After: 30`.
+- A connection that hasn't sent `hello` within 10 s is closed with 1008.
+- At most 500 rooms; a `hello` that would open another gets `error` `busy`
+  and is closed with 1013.
 - Each connection has a token bucket of 20 messages a second with a burst of 40.
 - A dropped or invalid message counts as a strike. After 60 strikes the
-  connection is closed with 1008.
+  connection is closed with 1008. A message that makes the relay throw counts
+  as a strike; it never takes the relay down.
 - Quiet connections are pinged after 20 s and dropped after 45 s.
 
 ## Docker

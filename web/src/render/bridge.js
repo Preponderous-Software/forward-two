@@ -6,6 +6,14 @@ export class Bridge {
     this.ptr = 0;
     this.cap = 0;
     this.textPtr = 0;
+    // slot -> () => mesh data, for meshes whose copy the engine does not keep
+    // (big static ones). Re-run after a lost WebGL context (restore()).
+    this.rebuilders = new Map();
+    // ?meshcopy=1 (or an older wasm without the exports) keeps every copy in the engine.
+    let forced = false;
+    try { forced = new URLSearchParams(globalThis.location?.search || "").get("meshcopy") === "1"; } catch { /* not a page */ }
+    this.canDropCopies = !forced && typeof mod._f2_mesh_drop_copy === "function" && typeof mod._f2_mesh_refill === "function";
+    this.droppedBytes = 0;
   }
 
   scratch(bytes) {
@@ -42,21 +50,59 @@ export class Bridge {
     this.mod._f2_texture_update(slot, p);
   }
 
+  static arrays(m) {
+    return {
+      pos: m.positions instanceof Float32Array ? m.positions : Float32Array.from(m.positions),
+      nrm: m.normals ? (m.normals instanceof Float32Array ? m.normals : Float32Array.from(m.normals)) : null,
+      col: m.colors ? (m.colors instanceof Float32Array ? m.colors : Float32Array.from(m.colors)) : null,
+      uv: m.uvs ? (m.uvs instanceof Float32Array ? m.uvs : Float32Array.from(m.uvs)) : null,
+      idx: m.indices instanceof Uint32Array ? m.indices : Uint32Array.from(m.indices),
+    };
+  }
+
   // mesh: {positions, normals?, colors?, uvs?, indices, color?, flags?, texture?}
-  mesh(m) {
-    const pos = m.positions instanceof Float32Array ? m.positions : Float32Array.from(m.positions);
-    const nrm = m.normals ? (m.normals instanceof Float32Array ? m.normals : Float32Array.from(m.normals)) : null;
-    const col = m.colors ? (m.colors instanceof Float32Array ? m.colors : Float32Array.from(m.colors)) : null;
-    const uv = m.uvs ? (m.uvs instanceof Float32Array ? m.uvs : Float32Array.from(m.uvs)) : null;
-    const idx = m.indices instanceof Uint32Array ? m.indices : Uint32Array.from(m.indices);
+  // rebuild: optional () => the same mesh data. With it, the engine drops its
+  // own copy (saving the wasm heap that much) and the data is rebuilt by
+  // calling rebuild() after a lost WebGL context.
+  mesh(m, rebuild = null) {
+    const { pos, nrm, col, uv, idx } = Bridge.arrays(m);
     if (idx.length === 0) return -1;
     const [p, n, c, u, i] = this.pack([pos, nrm, col, uv, idx]);
     const k = m.color || [1, 1, 1, 1];
-    return this.mod._f2_mesh_add(p, n, c, u, i, pos.length / 3, idx.length, k[0], k[1], k[2], k[3] ?? 1,
+    const slot = this.mod._f2_mesh_add(p, n, c, u, i, pos.length / 3, idx.length, k[0], k[1], k[2], k[3] ?? 1,
       m.flags || 0, m.texture ?? -1);
+    if (rebuild && this.canDropCopies && slot >= 0) {
+      this.droppedBytes += this.mod._f2_mesh_drop_copy(slot);
+      this.rebuilders.set(slot, rebuild);
+    }
+    return slot;
   }
 
-  removeMesh(slot) { this.mod._f2_mesh_remove(slot); }
+  // After a context restore: hand back the meshes whose copy was dropped.
+  // A rebuild may return the data or a promise of it. Resolves {refilled, failed}.
+  async restore() {
+    let refilled = 0, failed = 0;
+    for (const [slot, rebuild] of [...this.rebuilders]) {
+      if (!this.mod._f2_mesh_missing(slot)) continue;
+      try {
+        const data = await rebuild();
+        if (this.rebuilders.get(slot) !== rebuild || !this.mod._f2_mesh_missing(slot)) continue;   // removed or refilled meanwhile
+        const { pos, nrm, col, uv, idx } = Bridge.arrays(data);
+        const [p, n, c, u, i] = this.pack([pos, nrm, col, uv, idx]);
+        if (this.mod._f2_mesh_refill(slot, p, n, c, u, i, pos.length / 3, idx.length) === 0) refilled++; else failed++;
+      } catch (e) { failed++; console.warn("bridge: could not rebuild mesh", slot, e); }
+    }
+    this.shrink();
+    return { refilled, failed };
+  }
+
+  // The scratch block grows to the biggest mesh uploaded; give it back once
+  // the big uploads are done.
+  shrink() {
+    if (this.ptr && this.cap > (1 << 20)) { this.mod._free(this.ptr); this.ptr = 0; this.cap = 0; }
+  }
+
+  removeMesh(slot) { this.rebuilders.delete(slot); this.mod._f2_mesh_remove(slot); }
 
   transform(slot, m16) {
     const [p] = this.pack([m16]);

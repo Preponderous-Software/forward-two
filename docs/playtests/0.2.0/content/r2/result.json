@@ -1,0 +1,46 @@
+{
+ "mode": "new",
+ "toasts": [],
+ "state": {
+  "pay": 10,
+  "rank": 0,
+  "claimed": [],
+  "goal": "→ Wren's letter: Run any rapid.",
+  "feats": []
+ },
+ "shotErrors": [
+  "docs/playtests/0.2.0/content/r2/01-hud.jpg: page.screenshot: Timeout 150000ms exceeded.",
+  "docs/playtests/0.2.0/content/r2/06-find-card.jpg: page.screenshot: Timeout 150000ms exceeded."
+ ],
+ "journal": "Close\nRiver Journal\n\n1 of 18 places · 0 of 26 feats · 10 pay · 0 deliveries\n\nWHAT NEXT\nWren's letter: Run any rapid.\n50 more pay for the kayak.\n18 standing to Deckhand: Rush jobs. The Patch Kit and Dry Bags.\nSTANDING: GREENHORN\n\n2 standing · 18 more for Deckhand: Rush jobs. The Patch Kit and Dry Bags. Places, feats, deliveries, medals and finds all count.\n\nWREN'S LETTERS 0 OF 11\n1. The Fork now\n\nTo whoever has the raft at Meadow Fork: I keep the light at Saltmouth, at the bottom of this river. I'm too old to paddle it now, so learn it for me. Start small: run a rapid. — Wren\n\nGoal: Run any rapid.\n\nRIVER FINDS 0 OF 12\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\nPLACES\nMeadow Fork\nWhere the Brightwater meets the Long Water. Everyone starts here.\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\nFEATS\n?\nFirst Rapid\nRun any rapid.\n?\nClean Line\nRun a class III+ rapid with no misses.\n?\nThrough the Throat\nRun the Throat without swimming.\n?\nOver the Falls\nGo over the High Falls in your boat.\n?\nSwimmer\nSwim a rapid. Everyone does.\n?\nIn the Line\nFill the flow meter.\n?\nNight Paddler\nPaddle for two minutes after dark.\n?\nEvery Camp\nVisit all eight camps.\n?\nCartographer\nFind every landmark.\n?\nCourier\nDeliver five loads.\n?\nGold Medal\nWin gold on any race course.\n?\nSource to Sea\nReach the sea after starting at Tarn Spring.\n?\nGentle Hands\nDeliver a fragile load on time without a scratch.\n?\nAgainst the Current\nDeliver an upstream load on time.\n?\nBeat the Clock\nDeliver a rush job on time.\n?\nLantern Run\nFinish a job on time after dark.\n?\nFerryman\nGet a passenger to their stop on time and happy.\n?\nSurveyor\nSketch a landmark and bring it back.\n?\nThree Rivers\nPaddle the Long Water, the Brightwater and the Coldwater.\n?\nFull Fleet\nOwn all four boats.\n?\nWell Kitted\nFit every piece of gear.\n?\nThe Long Way Down\nFinish the Descent race.\n?\nOn the Podium\nWin a medal on every race course.\n?\nGolden Water\nWin gold on every race course.\n?\nBeachcomber\nPick up every river find.\n?\nKeeper of the Long Water\nFinish Wren's letters.\nRACES\nMeadow Sprint 507 m · gold 3:15.0\nnot run\nBrightwater Chutes 606 m · gold 3:09.4\nnot run\nThroat Run 648 m · gold 2:46.2\nnot run\nColdwater Run 915 m · gold 5:05.0\nnot run\nFerry Dash 525 m · gold 2:39.1\nnot run\nThe Descent 3936 m · gold 22:37.2\nnot run",
+ "map": "Close\nThe Long Water\n\n1 places found. Fog lifts where you've paddled.\n\n● camp · ● landmark · ⚑ race start · ◆ river find · ◌ Wren's next letter",
+ "camp-gear": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\n\nGear fits every boat you own. You are a Greenhorn with 10 pay.\n\nPatch Kit\nfor a Deckhand\nYour hull takes 30% less damage.\nDry Bags\nfor a Deckhand\nFragile loads lose half as much in a hit, and a swim no longer sinks them.\nLong Paddle\nfor a Paddler\nEvery stroke pulls 8% harder.\nChart Case\nfor a Paddler\nMarks places you haven't found yet on the map, and the finds you've missed.\nSpray Deck\nfor a River Hand\n15% steadier in rough water.",
+ "camp-jobs": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\nrope coils to Gorge Lookout 637 m\n5 hours · 40 pay\nTake\nmedicine to Coldwater Mill 667 mfragile\n6 hours · 60 pay\nTake\nrope coils to Mirror Dock 1634 m\n9 hours · 75 pay\nTake",
+ "camp-shuttle": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\n\nFind other camps first. The truck only goes where you've been.",
+ "cardpop": [
+  "RIVER FIND\nA Carved Paddle Blade\nHerons carved down the shaft. Snapped clean at the throat."
+ ],
+ "bought": null,
+ "after": {
+  "finds": [
+   "blade"
+  ],
+  "pay": 20
+ },
+ "savedProgress": {
+  "gear": [],
+  "chapters": [],
+  "finds": [
+   "blade"
+  ],
+  "rivers": [
+   "long"
+  ],
+  "rank": 0
+ },
+ "savedDay": 0,
+ "logs": [
+  "[error] Failed to load resource: the server responded with a status of 404 (File not found)",
+  "[error] strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))"
+ ]
+}

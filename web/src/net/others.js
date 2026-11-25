@@ -2,14 +2,15 @@
 //
 // Remote boats are drawn about 150 ms behind the server clock, interpolated
 // between the 10 Hz states that Net collects. Ghosts are recorded runs drawn
-// pale and translucent. At most 16 remote boats and 5 ghosts have meshes, and
-// the pool never holds more than MAX_SLOTS meshes.
-import { boatMesh, boatMatrix } from "../render/boats.js";
-import { MESH_TRANSLUCENT, POINT_SOFT } from "../render/bridge.js";
+// pale and translucent. Both are BoatRigs at the "lite" level (the hull and
+// crew, and the paddles sweeping as a group). At most 16 remote boats and 5
+// ghosts have rigs, and the pool never holds more than MAX_SLOTS meshes.
+import { BoatRig } from "../render/boats.js";
+import { POINT_SOFT } from "../render/bridge.js";
 import { sampleAt } from "./ghost.js";
 import { waterAt } from "../world/terrain.js";
 
-export const MAX_REMOTE = 16, MAX_GHOSTS = 5, MAX_SLOTS = 24;
+export const MAX_REMOTE = 16, MAX_GHOSTS = 5, MAX_SLOTS = 48;
 const DELAY_MS = 150;
 const EXTRAPOLATE_MS = 300;
 const EMOTE_S = 3;
@@ -47,9 +48,8 @@ export function poseAt(samples, t) {
 export class Others {
   constructor(game) {
     this.game = game;
-    this.entries = [];          // {slot, key, owner|null}
+    this.entries = [];          // {rig, key, owner|null}
     this.owned = new Map();     // owner -> entry
-    this.mat = new Float32Array(16);
     this.near = [];             // remote ids that get meshes
     this.pickAcc = 1;
     this.emotes = new Map();    // "self" | id -> {kind, t}
@@ -72,17 +72,19 @@ export class Others {
     if (cur) this.release(owner);
     let e = this.entries.find((x) => !x.owner && x.key === key);
     if (!e) {
-      if (this.entries.length >= MAX_SLOTS) {
+      // Make room: drop idle rigs until a new one fits the mesh budget.
+      const need = kind === "walker" ? 1 : 2;
+      let used = this.entries.reduce((n, x) => n + x.rig.count, 0);
+      while (used + need > MAX_SLOTS) {
         const i = this.entries.findIndex((x) => !x.owner);
         if (i < 0) return null;
-        b.removeMesh(this.entries[i].slot);
+        used -= this.entries[i].rig.count;
+        this.entries[i].rig.dispose();
         this.entries.splice(i, 1);
       }
-      const m = boatMesh(kind, ghost ? pale(colour) : colour);
-      if (ghost) { m.flags = MESH_TRANSLUCENT; m.color = [1, 1, 1, 0.42]; }
-      const slot = b.mesh(m);
-      if (slot == null || slot < 0) return null;
-      e = { slot, key, owner: null };
+      const rig = new BoatRig(b, kind, ghost ? pale(colour) : colour, { level: "lite", ghost, seed: this.entries.length * 1.7 + colour[0] * 5 });
+      if (rig.slots.some((s) => s == null || s < 0)) { rig.dispose(); return null; }
+      e = { rig, key, owner: null };
       this.entries.push(e);
     }
     e.owner = owner;
@@ -95,7 +97,7 @@ export class Others {
     if (!e) return;
     this.owned.delete(owner);
     e.owner = null;
-    this.bridge?.visible(e.slot, false);
+    e.rig.setVisible(false);
   }
 
   // ---------------------------------------------------------- per frame
@@ -169,10 +171,9 @@ export class Others {
         const kind = KINDS.has(p.boat) ? p.boat : "raft", col = okColour(p.colour);
         const e = this.acquire(`p:${id}`, kind, col, false);
         if (!e) continue;
-        const dip = pose.swim ? -0.5 : 0;
-        boatMatrix(pose.x, pose.y + 0.15 + dip, pose.z, pose.h, 0, pose.swim ? Math.PI : 0, 1, this.mat);
-        b.transform(e.slot, this.mat);
-        b.visible(e.slot, true);
+        if (!e.rig.shown) e.rig.setVisible(true);
+        e.rig.drive(pose, dt);
+        if (near(pose.x, pose.z)) e.rig.fx(R.points, POINT_SOFT);
         if (near(pose.x, pose.z)) {
           R.labels.push(pose.x, pose.y + 2.7, pose.z, 14, 0.55 + col[0] * 0.45, 0.55 + col[1] * 0.45, 0.55 + col[2] * 0.45, 0.95);
           labelText.push(ascii(p.name || "Paddler"));
@@ -195,9 +196,10 @@ export class Others {
         if (!e) continue;
         let y = me?.y ?? 0;
         try { if (g.world) y = waterAt(g.world, s.x, s.z); } catch { /* keep fallback */ }
-        boatMatrix(s.x, y + 0.15, s.z, s.h, 0, 0, 1, this.mat);
-        b.transform(e.slot, this.mat);
-        b.visible(e.slot, true);
+        if (!e.rig.shown) e.rig.setVisible(true);
+        e.rig.drive({ x: s.x, y, z: s.z, h: s.h, vx: e.vx, vz: e.vz }, dt);
+        if (dt > 0 && e.last && Math.hypot(s.x - e.last.x, s.z - e.last.z) < 3) { e.vx = (s.x - e.last.x) / dt; e.vz = (s.z - e.last.z) / dt; }
+        e.last = { x: s.x, z: s.z };
         if (near(s.x, s.z)) {
           R.labels.push(s.x, y + 2.5, s.z, 13, 0.82, 0.86, 0.9, 0.7);
           labelText.push(`ghost: ${gh.name}`);

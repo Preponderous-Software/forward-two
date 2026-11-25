@@ -206,7 +206,11 @@
     };
     kit.pan = function (dx, dy) {
       const k = cam.dist / Math.max(canvas.clientHeight, 1) * 1.1;
-      const sx = -Math.sin(cam.yaw), sz = Math.cos(cam.yaw);   // screen-right in world
+      // Screen-right in world. The view is right-handed (eye at +cos/sin(yaw)),
+      // so right is (sin, -cos); upstream had (-sin, cos), which panned the
+      // scene against the finger. Local fix in Forward Two (0.2.0 feel pass,
+      // checked with kit.project); to be reported upstream to Strata.
+      const sx = Math.sin(cam.yaw), sz = -Math.cos(cam.yaw);
       const fx = -Math.cos(cam.yaw), fz = -Math.sin(cam.yaw);  // screen-up (forward) in world
       cam.tx += (-dx * sx + dy * fx) * k;
       cam.tz += (-dx * sz + dy * fz) * k;

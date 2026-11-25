@@ -26,21 +26,54 @@ the map: travel is the game, and rhythm is how you get through the hard water.
 <p align="center"><img src="docs/media/map.png" width="560" alt="The map of the Long Water, with camps and landmarks found and the fog lifted where you've paddled"></p>
 <p align="center"><em>The map: camps, landmarks and rivers, with the fog lifting where you've been.</em></p>
 
+## New in 0.2.0
+
+| | |
+|---|---|
+| ![The raft and its crew of four on Mirror Lake](docs/media/0.2.0/boat-raft.jpg) | ![The kayak](docs/media/0.2.0/boat-kayak.jpg) |
+| **The raft** and its crew, who paddle with your strokes. | **The kayak**, a decked boat with a spray deck. |
+| ![The canoe](docs/media/0.2.0/boat-canoe.jpg) | ![The dory](docs/media/0.2.0/boat-dory.jpg) |
+| **The canoe**, with seats and cargo. | **The dory**, on its oars with two passengers. |
+| ![A swim beside the upturned raft](docs/media/0.2.0/swim.jpg) | ![Saltmouth Light restored at dusk](docs/media/0.2.0/light.jpg) |
+| **A swim.** Two strokes to climb back in. | **Saltmouth Light,** restored in four stages with your pay. |
+| ![A lantern on the boat at night](docs/media/0.2.0/lantern.jpg) | ![The coach in the first minutes](docs/media/0.2.0/coach.jpg) |
+| **Night on the river,** with a lantern on your boat. | **The coach** for your first five minutes. |
+| ![The River Journal: what next, standing, Wren's letters and river finds](docs/media/0.2.0/journal.jpg) | ![The Gear tab at a camp](docs/media/0.2.0/gear.jpg) |
+| **The journal:** what next, your rank, Wren's letters and river finds. | **Gear** at any camp: Patch Kit, Dry Bags, Long Paddle, Chart Case, Spray Deck. |
+| ![In a rapid, with a river find and a new camp announced](docs/media/0.2.0/rapid-calls.jpg) | ![A phone held sideways, with the signals fanned out](docs/media/0.2.0/phone.jpg) |
+| **In a rapid,** hitting the calls; finds and camps are announced as you pass. | **On a phone held sideways:** big stroke buttons and signals. |
+
+**Then and now:**
+
+| 0.1.0 | 0.2.0 |
+|---|---|
+| ![Whitewater in 0.1.0](docs/playtests/0.2.0/visuals/before/rapids.jpg) | ![Whitewater in 0.2.0](docs/media/rapids.png) |
+| ![The raft in 0.1.0](docs/playtests/0.2.0/boats/before-raft-close.jpg) | ![The raft in 0.2.0](docs/playtests/0.2.0/boats/after-raft-close.jpg) |
+
+More stills, before and after, are in each lane's notes under
+[docs/playtests/0.2.0/](docs/playtests/0.2.0/).
+
 ## Play
 
 - **Flat water:** paddle where you like. `W`/`↑`/`Space` forward, `S`/`↓`
-  back, `A` `D` or `←` `→` to turn. On a phone, use the big buttons.
+  back, `A` `D` or `←` `→` to turn. On a phone, use the big buttons; a
+  gamepad works too. New players get a coach for the first few minutes.
 - **Rapids:** the guide calls *Forward, Back, Left, Right* on the beat. Hit
   each call as its marker reaches the gate. Clean strokes keep your line and
   fill the flow meter. Misses hit the rocks, and too many put you in the river.
 - **Camps:** `E` steps you ashore and you can walk anywhere on land (`WASD`,
-  `Shift` to run, drag to look). Walk to the fire to rest, the job board for
-  deliveries, the boat rack to change boats, the truck to shuttle to any camp
-  you've found, and the dock to get back in the boat.
+  `Shift` to run, or hold ▲ on a phone; drag to look). Walk to the fire to
+  rest, the job board for deliveries, the boat rack to change boats and buy
+  gear, the truck to shuttle to any camp you've found, and the dock to get
+  back in the boat.
+- **Goals:** the line under the place name says what to do next: your job,
+  or the next of Wren's letters from Saltmouth Light. Earn ranks from your
+  journal, find what the river hides, and help restore the light.
 - **Multiplayer:** everyone on the river is in the same world. You see other
   paddlers live, can start group races at a course's start buoy (`R`), and race
   the best ghosts on each course's online board.
-- `M` map, `J` journal, `1` `2` `3` wave, flare, bell.
+- `M` map, `J` journal, `Tab` who's on the river, `1` `2` `3` wave, flare,
+  bell, `C` free camera, `H` the controls.
 
 ## Run it locally
 
@@ -53,7 +86,18 @@ node server/main.js --static web --port 8790   # Node 22, no npm install
 ```
 
 Then open <http://localhost:8790>. Useful URL options: `?world=small` (a
-lighter world for phones), `?seed=N`, `?hour=6.5`, `?new=1`, `?skip=1`, `?server=<url>` (a different relay) or `?server=off` (offline).
+lighter world for phones), `?seed=N`, `?hour=6.5`, `?new=1`, `?skip=1`, `?server=<url>` (a different relay) or `?server=off` (offline),
+`?detail=0`-`2` (spray, foam, pixel ratio and, at 0, a thinner forest),
+`?coach=0` or `?coach=1` (skip or replay the coach) and `?perf=1` (load and
+frame timings).
+
+The game picks the world and detail from the device (touch screen, memory,
+cores, data saver) and remembers a device that was too slow, so its next
+visit starts lighter; `?world=` overrides that. Saves are checked when they
+load, backed up once a session (`f2.save.v1.bak`), and a damaged save is
+restored from the backup and kept aside (`f2.save.v1.corrupt`), never deleted.
+"Start over" keeps the old save in `f2.save.v1.prev`, and a save from a newer
+version of the game is never overwritten.
 
 `tools/readme-shots.cjs` regenerates the stills above from a running server.
 

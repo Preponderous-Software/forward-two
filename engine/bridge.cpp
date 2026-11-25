@@ -4,6 +4,12 @@
 // textures) so it can rebuild them after a lost WebGL context, and turns the
 // page's per-frame rows into kit batches.
 //
+// Big meshes (the forest) need not be kept here: after f2_mesh_drop_copy the
+// slot holds only its settings (colour, flags, texture, transform), and after
+// a context restore it reports itself missing (f2_mesh_missing) until the
+// page hands the data again with f2_mesh_refill. That keeps the wasm heap
+// from holding a second copy of hundreds of MB of vertices.
+//
 // Every export takes pointers into the module's heap that the page filled
 // (see web/src/render/bridge.js). Row layouts are documented beside each.
 #define STRATA_KIT_MAIN
@@ -33,6 +39,8 @@ struct MeshSlot {
     float model[16] = {1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1};
     bool hasModel = false;
     uint32_t engineId = 0;
+    bool keep = true;      // the vertex data is kept here for a context restore
+    bool missing = false;  // no copy, and the engine lost it: the page must refill
 };
 
 struct TextureSlot {
@@ -87,9 +95,22 @@ void applyTransform(strata_kit::Host& h, MeshSlot& m) {
     }
 }
 
+void freeData(MeshSlot& m) {
+    std::vector<float>().swap(m.positions);
+    std::vector<float>().swap(m.normals);
+    std::vector<float>().swap(m.colors);
+    std::vector<float>().swap(m.uvs);
+    std::vector<uint32_t>().swap(m.indices);
+}
+
 void uploadMesh(strata_kit::Host& h, MeshSlot& m) {
     if (!h.engine) return;
     m.engineId = 0;
+    if (m.positions.empty() || m.indices.empty()) {
+        m.missing = true;
+        return;
+    }
+    m.missing = false;
     StrataTexturedMesh tm{};
     tm.mesh.positions = m.positions.data();
     tm.mesh.normals = m.normals.empty() ? nullptr : m.normals.data();
@@ -135,7 +156,7 @@ void strata_kit_engine_ready(strata_kit::Host& h) {
     for (auto& t : textures)
         if (t.used) uploadTexture(h, t);
     for (auto& m : meshes)
-        if (m.used) uploadMesh(h, m);
+        if (m.used) uploadMesh(h, m);  // a slot without its copy is marked missing
     h.meshes = countMeshes();
 }
 
@@ -307,6 +328,43 @@ STRATA_KIT_EXPORT void f2_mesh_visible(int slot, int visible) {
         m.hasModel = true;
     }
     applyTransform(strata_kit::host(), m);
+}
+
+// Frees the slot's copy of its vertex data (the engine keeps its GPU copy).
+// After a context restore the slot is missing until f2_mesh_refill. Returns
+// the bytes freed.
+STRATA_KIT_EXPORT int f2_mesh_drop_copy(int slot) {
+    if (slot < 0 || slot >= static_cast<int>(meshes.size()) || !meshes[slot].used) return 0;
+    MeshSlot& m = meshes[slot];
+    const size_t bytes = (m.positions.size() + m.normals.size() + m.colors.size() + m.uvs.size()) * sizeof(float) +
+                         m.indices.size() * sizeof(uint32_t);
+    m.keep = false;
+    freeData(m);
+    return static_cast<int>(bytes);
+}
+
+// 1 when the slot has no copy and the engine has lost it (after a restore).
+STRATA_KIT_EXPORT int f2_mesh_missing(int slot) {
+    if (slot < 0 || slot >= static_cast<int>(meshes.size()) || !meshes[slot].used) return 0;
+    return meshes[slot].missing ? 1 : 0;
+}
+
+// Hands a copy-less slot its data again: uploads it (with the slot's colour,
+// flags, texture and transform) and frees the copy straight after.
+STRATA_KIT_EXPORT int f2_mesh_refill(int slot, const float* positions, const float* normals, const float* colors,
+                                     const float* uvs, const uint32_t* indices, int nv, int ni) {
+    if (slot < 0 || slot >= static_cast<int>(meshes.size()) || !meshes[slot].used) return -1;
+    MeshSlot& m = meshes[slot];
+    m.positions.assign(positions, positions + static_cast<size_t>(nv) * 3);
+    if (normals) m.normals.assign(normals, normals + static_cast<size_t>(nv) * 3);
+    if (colors) m.colors.assign(colors, colors + static_cast<size_t>(nv) * 3);
+    if (uvs) m.uvs.assign(uvs, uvs + static_cast<size_t>(nv) * 2);
+    m.indices.assign(indices, indices + ni);
+    strata_kit::Host& h = strata_kit::host();
+    uploadMesh(h, m);
+    if (!m.keep) freeData(m);
+    h.meshes = countMeshes();
+    return m.engineId ? 0 : -1;
 }
 
 // Per-frame rows (see strata_kit_build for each layout).

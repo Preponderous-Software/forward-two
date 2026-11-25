@@ -25,11 +25,17 @@ export class GhostStore {
   async load(course) {
     if (this.cache.has(course)) return this.cache.get(course);
     await this.ready;
-    let list = [];
-    try {
-      const j = JSON.parse(await readFile(this.file(course), "utf8"));
+    let list = [], text = null;
+    try { text = await readFile(this.file(course), "utf8"); } catch { /* missing: start empty */ }
+    if (text != null) {
+      let j = null;
+      try { j = JSON.parse(text); } catch { /* handled below */ }
       if (Array.isArray(j)) list = j.filter((e) => e && typeof e.ghost === "string" && Number.isFinite(e.ms));
-    } catch { /* missing or unreadable: start empty */ }
+      else {
+        // Unreadable: keep the file aside rather than overwrite it on the next post.
+        try { await rename(this.file(course), `${this.file(course)}.corrupt-${Date.now()}`); } catch { /* leave it */ }
+      }
+    }
     this.cache.set(course, list);
     return list;
   }

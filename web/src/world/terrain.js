@@ -5,6 +5,7 @@
 // and z, the sea is y = 0 in the south-east corner.
 import { fbm, ridged, smoothstep, lerp, clamp } from "./noise.js";
 import { buildRivers, LAKE, SEA_LEVEL } from "./rivers.js";
+import { hash2 } from "./rng.js";
 
 export const PRESETS = {
   full: { n: 1025, cell: 3 },
@@ -141,9 +142,10 @@ export function buildGrids(skel, onProgress = null) {
 function paintGround(heights, water, nearest, seeds, rivers, n, cell, size, seed) {
   const colors = new Float32Array(n * n * 3);
   const C = {
-    bed: [0.27, 0.24, 0.18], sand: [0.62, 0.55, 0.38], meadow: [0.22, 0.42, 0.11], lush: [0.15, 0.36, 0.08],
+    bed: [0.27, 0.24, 0.18], sand: [0.62, 0.55, 0.38], meadow: [0.25, 0.36, 0.13], lush: [0.13, 0.28, 0.09],
     forest: [0.09, 0.22, 0.07], heath: [0.36, 0.34, 0.16], rock: [0.38, 0.36, 0.33], cliff: [0.3, 0.27, 0.25],
     snow: [0.86, 0.88, 0.9], reed: [0.48, 0.47, 0.2], mud: [0.31, 0.26, 0.17],
+    dry: [0.45, 0.43, 0.17], gravel: [0.45, 0.42, 0.37], olive: [0.3, 0.35, 0.12],
   };
   const mix = (a, b, t) => [lerp(a[0], b[0], t), lerp(a[1], b[1], t), lerp(a[2], b[2], t)];
   for (let j = 0; j < n; j++) for (let i = 0; i < n; i++) {
@@ -163,16 +165,28 @@ function paintGround(heights, water, nearest, seeds, rivers, n, cell, size, seed
       const moist = clamp(1 - (above - 1) / 30, 0, 1);
       // Height bands: meadow → forest → heath → rock → snow.
       col = mix(C.meadow, C.lush, clamp(0.5 + nz, 0, 1));
+      // Dry, sunny patches of meadow, and darker floor where the woods are thick.
+      col = mix(col, C.dry, smoothstep(0.05, 0.5, fbm(x / 140, z / 140, seed + 8, 3)) * 0.7 * (0.45 + 0.55 * (1 - moist)));
+      // Big soft swathes: olive grass on the drier slopes, deep green in hollows.
+      const sw = fbm(x / 320, z / 320, seed + 12, 2);
+      col = mix(col, sw > 0 ? C.olive : C.lush, Math.min(0.6, Math.abs(sw) * 1.4));
+      col = mix(col, C.forest, smoothstep(0.1, 0.45, fbm(x / 210, z / 210, seed + 50, 4)) * 0.45);
       col = mix(col, C.forest, smoothstep(95, 130, h) * (1 - moist * 0.7));
       col = mix(col, C.heath, smoothstep(185, 230, h));
       col = mix(col, C.rock, smoothstep(235, 275, h));
       col = mix(col, C.snow, smoothstep(285, 315, h + nz * 18));
       if (h < 3.2) col = mix(col, C.sand, smoothstep(3.2, 1.2, h));
       if (h < 9 && seeds.level[k] < 6) col = mix(col, C.reed, 0.5 * smoothstep(9, 3, h));
-      col = mix(col, C.mud, clamp(1 - above / 1.6, 0, 1) * 0.7);
+      // The bank: gravel bars along fast water, mud along slow.
+      const ri = seeds.river[k], cls = ri >= 0 ? rivers[ri].samples[seeds.index[k]].cls : 0;
+      col = mix(col, cls >= 2 ? C.gravel : C.mud, clamp(1 - above / (cls >= 2 ? 2.4 : 1.6), 0, 1) * 0.75);
       col = mix(col, slope > 1.1 ? C.cliff : C.rock, smoothstep(0.55, 1.0, slope));
-      const v = 1 + nz2 * 0.1;
-      col = [col[0] * v, col[1] * v, col[2] * v];
+      // Strata in the cliffs.
+      if (slope > 0.7) { const band = 0.92 + 0.12 * Math.sin(h * 0.9 + nz * 4); col = [col[0] * band, col[1] * band, col[2] * band]; }
+      // Mottling: brightness and a warm/cool hue drift, plus per-sample grain.
+      const hz = fbm(x / 47, z / 47, seed + 9, 2), grain = (hash2(i, j, seed + 3) - 0.5) * 0.09;
+      const v = 1 + nz2 * 0.16 + grain;
+      col = [Math.min(1, col[0] * v * (1 + hz * 0.14)), Math.min(1, col[1] * v), Math.min(1, col[2] * v * (1 - hz * 0.16))];
     }
     colors[c * 3] = col[0]; colors[c * 3 + 1] = col[1]; colors[c * 3 + 2] = col[2];
   }
