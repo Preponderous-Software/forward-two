@@ -15,11 +15,22 @@ const SHOTS = [
   { name: 'night-camp', hour: 22.3, setup: `const c = g.places.camps[0]; g.boat.x = c.x + c.nx * 20; g.boat.z = c.z + c.nz * 20; g.boat.heading = Math.atan2(-c.nz, -c.nx) + 0.4; g.snapCamera(); g.kit.cam.dist = 22; g.kit.cam.pitch = 0.3;` },
   { name: 'ashore', hour: 10.5, setup: `const c = g.places.camps[0]; g.walker.disembark(c); g.input.held.set('forward', 9);`, frames: 50, after: `g.input.held.delete('forward');` },
   { name: 'saltmouth', hour: 18.6, setup: `const l = g.places.landmarks.find((x) => x.id === 'lighthouse'); const c = g.places.camps.find((x) => x.id === 'town'); g.boat.x = c.x + c.nx * 30; g.boat.z = c.z + c.nz * 30; fixed((cam) => { cam.tx = l.x * 0.6 + c.x * 0.4; cam.tz = l.z * 0.6 + c.z * 0.4; cam.ty = c.y + 5; cam.dist = 42; cam.pitch = 0.2; cam.yaw = Math.atan2(c.nz, c.nx) + 0.35; });` },
+  // 0.2.0: the new boats and crews, a swim, the restored light, a lantern at night (JPEG).
+  ...['raft', 'kayak', 'canoe', 'dory'].map((kind, i) => ({ name: `boat-${kind}`, jpg: true, hour: 10.2, frames: 40,
+    setup: `const L = g.world.lake; g.boat.x = L.cx - L.R * 0.3; g.boat.z = L.cz + L.R * 0.1; g.boat.y = L.level; g.boat.heading = 0.6; g.setBoat('${kind}'); g.input.held.set('forward', 9);
+      fixed((cam) => { const b = g.boat; cam.tx = b.x; cam.tz = b.z; cam.ty = b.y + 0.6; cam.dist = ${[11, 8, 9.5, 10.5][i]}; cam.pitch = 0.3; cam.yaw = b.heading + 2.2; });`,
+    after: `g.input.held.delete('forward');` })),
+  { name: 'swim', jpg: true, hour: 11, frames: 30, setup: `g.setBoat('raft'); const r = g.rapids.find((x) => x.name === 'The Throat'); atS(r.river, r.s0 + 40, 0); g.flip();
+      fixed((cam) => { const b = g.boat; cam.tx = b.x; cam.tz = b.z; cam.ty = b.y; cam.dist = 10; cam.pitch = 0.45; cam.yaw = b.heading + 2.6; });` },
+  { name: 'light', jpg: true, hour: 19.2, frames: 30, setup: `g.setBoat('raft'); const l = g.places.landmarks.find((x) => x.id === 'lighthouse'); g.journal.found.add('lighthouse'); g.progress.light = 4; const c = g.places.camps.find((x) => x.id === 'town'); g.boat.x = c.x + c.nx * 30; g.boat.z = c.z + c.nz * 30;
+      fixed((cam) => { cam.tx = l.x; cam.tz = l.z; cam.ty = (g.progress.lightGeo?.gy ?? c.y) + 6; cam.dist = 38; cam.pitch = 0.2; cam.yaw = Math.atan2(c.nz, c.nx) + 0.5; });` },
+  { name: 'lantern', jpg: true, hour: 22.6, frames: 30, setup: `g.setBoat('canoe'); at('long', 0.43, 0, 0); g.snapCamera(); g.kit.cam.dist = 12; g.kit.cam.pitch = 0.32;` },
 ];
 
 const PRELUDE = `
   const g = window.__f2;
   g.cameraOverride = null;
+  g.input.held.clear?.();
   if (g.walker && g.walker.active) { g.walker.embark(); }
   g.hud.panels.title?.close?.();
   const atS = (ri, s, lat = 0, turn = 0) => {
@@ -48,8 +59,8 @@ const PRELUDE = `
     const frames = s.frames || 24;
     t = await page.evaluate(([n, t0]) => { const k = window.__f2.kit; let t = t0; for (let i = 0; i < n; i++) { t += 1 / 30; k.drive(t); } return t; }, [frames, t]);
     if (s.after) await page.evaluate(`(() => { const g = window.__f2; ${s.after} })()`);
-    const data = await page.evaluate(() => document.getElementById('view').toDataURL('image/png'));
-    const file = path.join(outDir, `${s.name}.png`);
+    const data = await page.evaluate((jpg) => document.getElementById('view').toDataURL(jpg ? 'image/jpeg' : 'image/png', 0.9), !!s.jpg);
+    const file = path.join(outDir, `${s.name}.${s.jpg ? 'jpg' : 'png'}`);
     fs.writeFileSync(file, Buffer.from(data.split(',')[1], 'base64'));
     console.log('wrote', file);
   }

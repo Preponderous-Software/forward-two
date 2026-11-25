@@ -1,0 +1,39 @@
+js : "go"
+sim start {"strokes":0,"judged":{},"events":[]}
+start {"t":"2.0","x":"1138","z":"1286","sp":"0.57","hd":"12","yaw":"-168","dist":"15.3","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Press W to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js : true
+sim W held {"strokes":0,"judged":{},"events":[]}
+W held {"t":"4.5","x":"1145","z":"1287","sp":"3.28","hd":"12","yaw":"-168","dist":"16.9","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"A and D turn the bow. Try both.","walker":false,"paused":false}
+js : true
+js : true
+sim A held {"strokes":0,"judged":{},"events":[]}
+A held {"t":"5.9","x":"1149","z":"1289","sp":"2.48","hd":"66","yaw":"-154","dist":"16.7","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Ride the current downstream to Sunken Bridge.310 m","walker":false,"paused":false}
+js handedness after left: {"boat":[621,482],"walkerRight":[366,482],"headingPlus":[886,425],"headingNow":[779,381]}
+js : true
+js : true
+sim D {"strokes":0,"judged":{},"events":[]}
+D {"t":"6.4","x":"1150","z":"1290","sp":"2.33","hd":"65","yaw":"-141","dist":"16.6","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Ride the current downstream to Sunken Bridge.310 m","walker":false,"paused":false}
+js : true
+sim explore {"strokes":0,"judged":{},"events":[]}
+explore {"t":"7.0","x":"1151","z":"1291","sp":"1.89","hd":"56","yaw":"-137","dist":"16.4","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork · E go ashore and walk around","flash":"","coach":"Ride the current downstream to Sunken Bridge.310 m","walker":false,"paused":false}
+sim pilot to rapid {"strokes":265,"judged":{},"events":[],"stoppedAt":"130.3"}
+pilot to rapid {"t":"130.4","x":"1534","z":"1474","sp":"3.37","hd":"26","yaw":"-152","dist":"17.4","pitch":"0.37","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.00","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 115.8 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+sim in rapid {"strokes":0,"judged":{},"events":[]}
+in rapid {"t":"132.0","x":"1537","z":"1476","sp":"1.73","hd":"12","yaw":"-161","dist":"19.0","pitch":"0.45","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":2,"flow":"0.00","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 117.5 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+js rock calls vs screen side: []
+rapid lane {"t":"132.0","x":"1537","z":"1476","sp":"1.70","hd":"12","yaw":"-161","dist":"19.0","pitch":"0.45","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":2,"flow":"0.00","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 117.5 s","flash":"","coach":"Whitewater! Press the key the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+sim run rapid (bot early) {"strokes":56,"judged":{"good":56},"events":[]}
+run rapid (bot early) {"t":"252.1","x":"1755","z":"1625","sp":"0.92","hd":"11","yaw":"-141","dist":"18.5","pitch":"0.46","stab":"0.95","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"1.00","where":"The Gorge","sub":"Gorge Gate · Class III","prompt":"Throat Run · gate 2/17 · 42.1 s","flash":"","coach":"Ride the current downstream to The Throat.60 m","walker":false,"paused":false}
+sim after rapid {"strokes":0,"judged":{},"events":[]}
+after rapid {"t":"253.2","x":"1755","z":"1626","sp":"1.02","hd":"11","yaw":"-140","dist":"18.6","pitch":"0.46","stab":"0.95","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"1.00","where":"The Gorge","sub":"Gorge Gate · Class III","prompt":"Throat Run · gate 2/17 · 43.2 s","flash":"","coach":"Ride the current downstream to The Throat.60 m","walker":false,"paused":false}
+sim pilot to camp {"strokes":5,"judged":{"miss":38},"events":[]}
+pilot to camp {"t":"453.2","x":"2106","z":"2212","sp":"1.57","hd":"29","yaw":"-146","dist":"16.0","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"Mirror Lake","sub":"","prompt":"","flash":"","coach":"Through! Paddle to Ferry Landing and press E to go ashore.620 m","walker":false,"paused":false}
+js : "E"
+sim ashore {"strokes":0,"judged":{},"events":[]}
+ashore {"t":"455.3","x":"2108","z":"2213","sp":"0.57","hd":"29","yaw":"-151","dist":"15.5","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"Mirror Lake","sub":"","prompt":"","flash":"","coach":"Through! Paddle to Ferry Landing and press E to go ashore.620 m","walker":false,"paused":false}
+sim done {"strokes":0,"judged":{},"events":[]}
+done {"t":"461.3","x":"2109","z":"2213","sp":"0.17","hd":"29","yaw":"-151","dist":"15.1","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"Mirror Lake","sub":"The Long Water · flat water","prompt":"","flash":"","coach":"Through! Paddle to Ferry Landing and press E to go ashore.620 m","walker":false,"paused":false}
+--- console
+[error] strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))
+[log] forward-two: Strata 0.10.0 on WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium)) (kit 1.3)
+[info] Autofocus processing was blocked because a document already has a focused element.

@@ -1,0 +1,18 @@
+js : "go"
+sim  {"strokes":0,"judged":{},"events":[]}
+ {"t":"1.1","x":"1138","z":"1286","sp":"0.38","hd":"12","yaw":"-168","dist":"15.4","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork Go ashore","flash":"","coach":"Tap ▲ to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js : "fan"
+sim fan {"strokes":0,"judged":{},"events":[]}
+fan {"t":"1.3","x":"1138","z":"1286","sp":"0.45","hd":"12","yaw":"-168","dist":"15.4","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork Go ashore","flash":"","coach":"Tap ▲ to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+js : "closed"
+sim camp prompt {"strokes":0,"judged":{},"events":[]}
+camp prompt {"t":"1.6","x":"1138","z":"1286","sp":"0.51","hd":"12","yaw":"-168","dist":"15.3","pitch":"0.36","stab":"1.00","swim":false,"rapid":"","calls":0,"flow":"0.00","where":"The Meadows","sub":"The Long Water · Class I","prompt":"Meadow Fork Go ashore","flash":"","coach":"Tap ▲ to stroke forward. Hold it to keep paddling.","walker":false,"paused":false}
+sim pilot to rapid {"strokes":272,"judged":{},"events":[],"stoppedAt":"128.5"}
+pilot to rapid {"t":"128.6","x":"1534","z":"1472","sp":"3.33","hd":"12","yaw":"-166","dist":"17.5","pitch":"0.37","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.00","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 115.4 s","flash":"","coach":"Whitewater! Tap the button the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+sim rapid {"strokes":2,"judged":{"perfect":2},"events":[]}
+rapid {"t":"132.6","x":"1543","z":"1474","sp":"3.08","hd":"12","yaw":"-162","dist":"19.5","pitch":"0.48","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.18","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 119.4 s","flash":"","coach":"Whitewater! Tap the button the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+rapid {"t":"132.7","x":"1543","z":"1474","sp":"3.05","hd":"12","yaw":"-162","dist":"19.5","pitch":"0.48","stab":"1.00","swim":false,"rapid":"Gorge Gate","calls":1,"flow":"0.18","where":"The Meadows","sub":"Gorge Gate · Class III","prompt":"Meadow Sprint · gate 8/10 · 119.5 s","flash":"","coach":"Whitewater! Tap the button the guide calls as its marker reaches the gate.","walker":false,"paused":false}
+--- console
+[error] strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))
+[log] forward-two: Strata 0.10.0 on WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium)) (kit 1.3)
+[info] Autofocus processing was blocked because a document already has a focused element.

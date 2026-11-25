@@ -1,0 +1,122 @@
+{
+  "multiplayerFailed": "page.waitForFunction: Timeout 400000ms exceeded.",
+  "mpErrors": [
+    "A error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "A error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "B error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "B error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))"
+  ],
+  "mpState": {
+    "online": true,
+    "players": 0,
+    "run": false
+  },
+  "corruptWithBackup": {
+    "boat": "raft",
+    "pay": 10,
+    "notice": null,
+    "corrupt": null,
+    "toasts": []
+  },
+  "corruptNoBackup": {
+    "boat": "raft",
+    "notice": null,
+    "corrupt": null
+  },
+  "blockedStorage": {
+    "booted": true,
+    "wrote": false
+  },
+  "saveErrors": [
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S error: Failed to load resource: the server responded with a status of 404 (File not found)",
+    "S error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))",
+    "S warning: save: write failed SecurityError: denied"
+  ],
+  "wasmBlocked": {
+    "booted": false,
+    "text": "Forward Two didn't finish downloading. Check your connection and try again. About Forward Two engine/forward-two.wasm: Failed to fetch Try again",
+    "retry": true,
+    "ms": 618,
+    "errors": [
+      "wasm-blocked error: Failed to load resource: the server responded with a status of 404 (File not found)",
+      "wasm-blocked error: Failed to load resource: net::ERR_FAILED",
+      "wasm-blocked error: Error: engine/forward-two.wasm: Failed to fetch\n    at errorWithCode (http://127.0.0.1:8834/src/ui/errors.js:33:69)\n    at loadEngine (http://127.0.0.1:8834/src",
+      "wasm-blocked error: Failed to load resource: the server responded with a status of 404 (File not found)"
+    ]
+  },
+  "wasm404": {
+    "booted": false,
+    "text": "Forward Two didn't finish downloading. Check your connection and try again. About Forward Two engine/forward-two.wasm: HTTP 404 Try again",
+    "retry": true,
+    "ms": 562,
+    "errors": [
+      "wasm-404 error: Failed to load resource: the server responded with a status of 404 (File not found)",
+      "wasm-404 error: Failed to load resource: the server responded with a status of 404 (Not Found)",
+      "wasm-404 error: Error: engine/forward-two.wasm: HTTP 404\n    at errorWithCode (http://127.0.0.1:8834/src/ui/errors.js:33:69)\n    at loadEngine (http://127.0.0.1:8834/src/main.j",
+      "wasm-404 error: Failed to load resource: the server responded with a status of 404 (File not found)"
+    ]
+  },
+  "wasmGarbage": {
+    "booted": false,
+    "text": "The game's engine failed to start on this device. About Forward Two Aborted(CompileError: WebAssembly.instantiate(): expected magic word 00 61 73 6d, found 6e 6f 74 20 @+0). Build with -sASSERTIONS for more info. Try again",
+    "retry": true,
+    "ms": 576,
+    "errors": [
+      "wasm-garbage error: Failed to load resource: the server responded with a status of 404 (File not found)",
+      "wasm-garbage error: failed to asynchronously prepare wasm: CompileError: WebAssembly.instantiate(): expected magic word 00 61 73 6d, found 6e 6f 74 20 @+0",
+      "wasm-garbage error: Aborted(CompileError: WebAssembly.instantiate(): expected magic word 00 61 73 6d, found 6e 6f 74 20 @+0)",
+      "wasm-garbage error: Error: Aborted(CompileError: WebAssembly.instantiate(): expected magic word 00 61 73 6d, found 6e 6f 74 20 @+0). Build with -sASSERTIONS for more info.\n    at e"
+    ]
+  },
+  "noWebAssembly": {
+    "booted": false,
+    "text": "This browser has WebAssembly switched off (iOS Lockdown Mode and some locked-down browsers do this), and Forward Two's engine needs it. About Forward Two no-wasm",
+    "retry": false,
+    "ms": 359,
+    "errors": [
+      "no-webassembly error: Error: no-wasm\n    at errorWithCode (http://127.0.0.1:8834/src/ui/errors.js:33:69)\n    at loadEngine (http://127.0.0.1:8834/src/main.js:49:46)\n    at boot (http",
+      "no-webassembly error: Failed to load resource: the server responded with a status of 404 (File not found)"
+    ]
+  },
+  "workerBlocked": {
+    "booted": true,
+    "text": "",
+    "retry": false,
+    "ms": 4347,
+    "errors": [
+      "worker-blocked warning: world worker failed, building on the main thread: worker error",
+      "worker-blocked error: Failed to load resource: the server responded with a status of 404 (File not found)",
+      "worker-blocked error: strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))"
+    ]
+  },
+  "moduleBlocked": {
+    "booted": false,
+    "text": "Forward Two Forward Two didn't finish downloading. Check your connection and try again. Try again",
+    "retry": true,
+    "ms": 1896,
+    "errors": [
+      "module-blocked error: Failed to load resource: net::ERR_FAILED"
+    ]
+  },
+  "loaderBlocked": {
+    "booted": false,
+    "text": "Forward Two Something went wrong starting Forward Two. StrataLoader is not defined Try again",
+    "retry": true,
+    "ms": 351,
+    "errors": [
+      "loader-script-blocked error: Failed to load resource: net::ERR_FAILED",
+      "loader-script-blocked error: ReferenceError: StrataLoader is not defined\n    at boot (http://127.0.0.1:8834/src/main.js:71:3)\n    at http://127.0.0.1:8834/src/main.js:95:1"
+    ]
+  },
+  "frameThrow": {
+    "errors": 5,
+    "advanced": 0.6000000000000003,
+    "running": true
+  }
+}

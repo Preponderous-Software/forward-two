@@ -1,0 +1,17 @@
+{
+ "claimed": [
+  "first-water",
+  "honest-work",
+  "brightwater"
+ ],
+ "jobs": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\nWren's errand: a parcel for Gorge Lookout 637 m\n7 hours · 95 pay\nTake\nrope coils to Brightwater Lodge 708 mupstream\n9 hours · 80 pay\nTake\nmedicine to Coldwater Mill 667 mfragile\n6 hours · 60 pay\nTake\nrope coils to Mirror Dock 1634 m\n9 hours · 75 pay\nTake",
+ "took": "Wren's errand: a parcel for Gorge Lookout",
+ "goalLine": [
+  "5s → Wren's parcel → Gorge Lookout · 629 m",
+  "10s → Wren's parcel → Gorge Lookout · 626 m",
+  "15s → Wren's parcel → Gorge Lookout · 622 m",
+  "20s → Wren's letter: Find Gorge Lookout, below the Meadows.",
+  "25s → Wren's letter: Find Gorge Lookout, below the Meadows."
+ ],
+ "error": "page.evaluate: Target page, context or browser has been closed"
+}

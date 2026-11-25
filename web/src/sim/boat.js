@@ -11,11 +11,14 @@ export const BOATS = {
   dory: { name: "Dory", stroke: 1.25, turn: 0.85, drag: 0.42, side: 3.2, mass: 1.8, stability: 1.25, cargo: 4, len: 5.6, beam: 1.7, top: 7.4, colour: [0.2, 0.35, 0.7] },
 };
 
+// yaw: the sign of the heading change. Strata's camera is right-handed, so a
+// growing heading turns the bow to the screen's right; a left stroke must
+// shrink it. (0.1.0 had these the wrong way round: A turned the boat right.)
 export const STROKES = {
   forward: { push: 1.0, yaw: 0 },
   back: { push: -0.65, yaw: 0 },
-  left: { push: 0.35, yaw: 1 },
-  right: { push: 0.35, yaw: -1 },
+  left: { push: 0.35, yaw: -1 },
+  right: { push: 0.35, yaw: 1 },
 };
 
 // The water's velocity at (x, z): along the river, fastest mid-channel; a slow
@@ -39,7 +42,7 @@ export function makeBoat(kind = "raft", x = 0, z = 0, heading = 0) {
     x, z, y: 0, heading, vx: 0, vz: 0, spin: 0,
     stability: 1, hull: 1, swimming: false, airborne: 0,
     stroke: null, strokeT: 0, lastStroke: -1, pitch: 0, roll: 0,
-    bumps: 0, flips: 0, distance: 0,
+    bumps: 0, flips: 0, distance: 0, line: null,
   };
 }
 
@@ -57,11 +60,47 @@ export function stroke(boat, kind, power = 1, now = 0) {
   return true;
 }
 
+// A clean stroke on a rock call: the boat visibly takes the line round it.
+// It sets a short-lived "line" that stepBoat follows: a sideways pull (across
+// the current) to a lane clear of the rock, held until the boat is past it.
+// Without it a judged stroke "clears" a rock the boat then sails through.
+export const LINE = { clearance: 0.6, gain: 5, damp: 3, maxAccel: 7, maxTime: 3.5 };
+// `call` ("left"/"right") picks the side: +across, (-tz, tx), is river-right
+// (screen-right looking downstream), so left is -across. Without one, the
+// boat's own side of the rock.
+export function dodge(boat, rock, call = null) {
+  const cur = boat.current, s = cur && cur.hit && cur.hit.sample;
+  const tx = s ? s.tx : Math.cos(boat.heading), tz = s ? s.tz : Math.sin(boat.heading);
+  const ax = -tz, az = tx;
+  const side = (boat.x - rock.x) * ax + (boat.z - rock.z) * az;
+  // Pass on the side the boat is already on; dead centre, take the river's wider side.
+  const away = call === "left" ? -1 : call === "right" ? 1 : Math.abs(side) > 0.05 ? Math.sign(side) : -Math.sign(rock.lateral || 1);
+  boat.line = { x: rock.x, z: rock.z, tx, tz, off: away * ((rock.r || 1) + boat.spec.beam / 2 + LINE.clearance), t: 0 };
+  boat.spin += away * 0.35 * boat.spec.turn;   // the bow swings toward the gap
+  return away;
+}
+
+function followLine(boat, dt) {
+  const L = boat.line;
+  L.t += dt;
+  const dx = boat.x - L.x, dz = boat.z - L.z;
+  const along = dx * L.tx + dz * L.tz;
+  if (along > 2.5 || L.t > LINE.maxTime) { boat.line = null; return; }
+  const ax = -L.tz, az = L.tx;
+  const lat = dx * ax + dz * az, vlat = boat.vx * ax + boat.vz * az;
+  // Only push outward: once the boat is wide enough it is left alone.
+  const need = L.off > 0 ? Math.max(0, L.off - lat) : Math.min(0, L.off - lat);
+  let acc = need * LINE.gain - (need ? vlat * LINE.damp : 0);
+  acc = Math.max(-LINE.maxAccel, Math.min(LINE.maxAccel, acc));
+  boat.vx += ax * acc * dt; boat.vz += az * acc * dt;
+}
+
 // Advance dt seconds. Returns events: [{type: "bank"|"rock"|"drop", ...}]
 export function stepBoat(world, boat, dt, features = null) {
   const events = [];
   const spec = boat.spec;
   const cur = currentAt(world, boat.x, boat.z);
+  if (boat.line) followLine(boat, dt);
   // Relative velocity in the boat's frame.
   const fx = Math.cos(boat.heading), fz = Math.sin(boat.heading);
   const rx = boat.vx - cur.vx, rz = boat.vz - cur.vz;

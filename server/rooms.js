@@ -16,6 +16,10 @@ export const DEFAULTS = {
   strikes: 60,            // dropped messages before the connection is cut
   emoteGapMs: 1000,
   maxMessage: 4096,       // client messages are small; anything bigger is abuse
+  maxRooms: 500,          // distinct seed/room pairs alive at once
+  maxRaces: 16,           // open lobbies and races per room
+  helloMs: 10_000,        // a connection that never says hello is dropped
+  courses: null,          // optional Set of course ids: races only on real courses
 };
 
 export class Hub {
@@ -39,8 +43,13 @@ export class Hub {
   // Attach a connection. defaults: {seed, room} from the URL query.
   attach(conn, defaults = {}) {
     const c = { conn, id: 0, room: null, tokens: this.o.burst, last: this.now(), strikes: 0, lastEmote: 0 };
-    conn.on("message", (text) => this.onMessage(c, text, defaults));
-    conn.on("close", () => this.leave(c));
+    c.helloTimer = setTimeout(() => { if (!c.player) conn.close(1008, "hello first"); }, this.o.helloMs);
+    c.helloTimer.unref?.();
+    conn.on("message", (text) => {
+      // One bad message must never take the relay down for everyone.
+      try { this.onMessage(c, text, defaults); } catch (e) { this.strike(c, "server error"); this.o.log?.(`message error ${e.stack || e}`); }
+    });
+    conn.on("close", () => { clearTimeout(c.helloTimer); this.leave(c); });
     return c;
   }
 
@@ -102,6 +111,10 @@ export class Hub {
     const seed = cleanSeed(m.seed ?? defaults.seed), name = cleanRoom(m.room ?? defaults.room);
     const key = `${seed}/${name}`;
     let room = this.rooms.get(key);
+    if (!room && this.rooms.size >= this.o.maxRooms) {
+      this.send(c, { t: "error", code: "busy", msg: "The river is busy. Try again in a while." });
+      return c.conn.close(1013, "too many rooms");
+    }
     if (!room) { room = { key, seed, name, players: new Map(), races: new Map() }; this.rooms.set(key, room); }
     if (room.players.size >= this.o.maxPerRoom) {
       if (!room.players.size) this.rooms.delete(key);
@@ -109,7 +122,7 @@ export class Hub {
       return c.conn.close(1013, "room full");
     }
     const p = { id: this.nextId++, name: cleanName(m.name), colour: cleanColour(m.colour), boat: cleanBoat(m.boat), state: null, dirty: false, conn: c.conn };
-    c.player = p; c.id = p.id; c.room = room;
+    c.player = p; c.id = p.id; c.room = room; clearTimeout(c.helloTimer);
     this.send(c, {
       t: "welcome", id: p.id, seed, room: name, now: this.now(), name: p.name,
       players: [...room.players.values()].map((q) => ({ ...this.pub(q), state: q.state })),
@@ -140,13 +153,14 @@ export class Hub {
   // ------------------------------------------------------------ races
 
   raceReady(c, course) {
-    if (!validCourse(course)) return this.strike(c, "bad course");
+    if (!validCourse(course) || (this.o.courses && !this.o.courses.has(course))) return this.strike(c, "bad course");
     const room = c.room, t = this.now();
     let r = room.races.get(course);
     if (r && r.phase === "racing") {
       // A race is under way on this course; a new lobby can open after it.
       return this.send(c, { t: "race-busy", course, at: r.at });
     }
+    if (!r && room.races.size >= this.o.maxRaces) return this.send(c, { t: "race-busy", course, at: 0 });
     if (!r) {
       r = { course, phase: "lobby", at: t + this.o.lobbyMs, ready: new Set(), racers: null, results: [] };
       room.races.set(course, r);

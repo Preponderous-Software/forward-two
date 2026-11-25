@@ -5,6 +5,7 @@ import { POINT_SOFT, PRIM } from "../render/bridge.js";
 import { COURSES, buildCourses, crossed } from "./courses.js";
 
 export { COURSES };
+const PENDING_GRACE = 5;   // seconds past the announced start before giving up on the relay
 import { clamp } from "../world/noise.js";
 
 
@@ -26,13 +27,22 @@ export class Races {
     if (this.listening || !g.net?.on) return;
     this.listening = true;
     const byId = (id) => this.courses.find((c) => c.id === id);
-    g.net.on("race-lobby", (m) => { const c = byId(m.course); if (c) g.hud.toast(`${c.name}: ${m.ready} ready · start in ${Math.ceil(m.startsIn ?? 10)} s`); });
+    // startsIn and elapsed are milliseconds; the game clock is seconds.
+    g.net.on("race-lobby", (m) => {
+      const c = byId(m.course); if (!c) return;
+      const secs = Math.max(0, Math.ceil((Number.isFinite(m.startsIn) ? m.startsIn : 10_000) / 1000));
+      if (this.pending?.course === c) this.pending.until = g.time + secs + PENDING_GRACE;
+      g.hud.toast(`${c.name}: ${Array.isArray(m.ready) ? m.ready.length : m.ready} ready · start in ${secs} s`);
+    });
     g.net.on("race-start", (m) => {
       const c = byId(m.course); if (!c || !m.mine || this.run) return;
+      if (this.pending?.course === c) this.pending = null;
       const b = g.boat, gt = c.gates[0];
       if (Math.hypot(gt.x - b.x, gt.z - b.z) > 60) return;
-      this.begin(c, g.time - Math.max(0, m.elapsed || 0));
+      this.begin(c, g.time - Math.min(5, Math.max(0, (m.elapsed || 0) / 1000)));
     });
+    // The relay went away while we waited at the start: fall back to a solo start.
+    g.net.on("offline", () => { if (this.pending) this.fallbackSolo("Lost the river relay"); });
     g.net.on("race-results", (m) => {
       const c = byId(m.course); if (!c || !m.final) return;
       const top = (m.results || []).slice(0, 3).map((r) => `${r.place}. ${r.name} ${fmt(r.ms / 1000)}`).join("  ");
@@ -47,7 +57,8 @@ export class Races {
 
   promptHtml() {
     if (this.run) return `<b>${this.run.course.name}</b> · gate ${this.run.next}/${this.run.course.gates.length} · ${(this.game.time - this.run.t0).toFixed(1)} s`;
-    if (this.lobby) return `<b>${this.lobby.course.name}</b> · group start in ${Math.max(0, Math.ceil(this.lobby.at - this.game.time))} s`;
+    if (this.pending) return `<b>${this.pending.course.name}</b> · waiting for the group start`;
+    if (this.lobby) return `<b>${this.lobby.course.name}</b> · start in ${Math.max(0, Math.ceil(this.lobby.at - this.game.time))} s`;
     const c = this.startNear();
     if (!c) return this.game.jobs?.hudLine() || null;
     const best = this.best[c.id];
@@ -60,7 +71,10 @@ export class Races {
     const c = this.startNear();
     if (!c || this.run) return false;
     const net = this.game.net;
-    if (net?.online) { net.readyRace(c.id); this.game.hud.toast("Waiting for others at the start…"); }
+    if (net?.online && net.readyRace(c.id)) {
+      this.pending = { course: c, until: this.game.time + 10 + PENDING_GRACE };
+      this.game.hud.toast("Waiting for others at the start…");
+    }
     else this.lobby = { course: c, at: this.game.time + 5 };
     return true;
   }
@@ -81,8 +95,22 @@ export class Races {
     if (this.run && this.run.course === c) g.others?.showGhosts?.(c.id, ghosts, t0);
   }
 
+  // A group start that will not come (relay gone, or no start in time):
+  // count down solo if still at the buoy, else just cancel it.
+  fallbackSolo(why) {
+    const g = this.game, p = this.pending;
+    this.pending = null;
+    if (!p || this.run) return;
+    const b = g.boat, gt = p.course.gates[0];
+    if (Math.hypot(gt.x - b.x, gt.z - b.z) < 60) {
+      this.lobby = { course: p.course, at: g.time + 5 };
+      g.hud.toast(`${why}: the group start is off. Solo start in 5 s.`, 4);
+    } else g.hud.toast(`${why}: the group start at ${p.course.name} is off.`, 4);
+  }
+
   tick() {
     const g = this.game, b = g.boat;
+    if (this.pending && g.time > this.pending.until) this.fallbackSolo("No start from the relay");
     if (this.lobby && g.time >= this.lobby.at) { const c = this.lobby.course; this.lobby = null; this.begin(c, g.time); }
     if (!this.run) {
       // Crossing the first gate starts a solo run.
@@ -119,9 +147,16 @@ export class Races {
     if (medal === "gold") g.journal.feat("gold");
     g.journal.earn(medal === "gold" ? 40 : medal === "silver" ? 25 : medal === "bronze" ? 15 : 5, `${c.name} ${fmt(t)}`);
     g.net?.finishRace?.(c.id, ms);
-    if (ghost && pb) g.net?.submitGhost?.(c.id, { name: g.net?.profile?.name || "Paddler", ms, ghost });
     g.others?.clearGhosts?.();
     g.save?.soon();
+    // The run is already kept (best + local board); the upload is best effort
+    // and is queued by net.js when the relay cannot be reached.
+    if (ghost && pb && g.net?.submitGhost) {
+      try {
+        const r = await g.net.submitGhost(c.id, { name: g.net?.profile?.name || "Paddler", ms, ghost });
+        if (r?.queued) g.hud.toast("Offline: your run is saved here and will go to the online board when you reconnect.", 4);
+      } catch (_) { /* kept locally */ }
+    }
   }
 
   draw(R) {

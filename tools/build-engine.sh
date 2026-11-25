@@ -19,7 +19,7 @@ if ! command -v emcc >/dev/null; then
   # shellcheck disable=SC1091
   EMSDK_QUIET=1 source "$EMSDK/emsdk_env.sh" >/dev/null
 fi
-exports=_f2_set_terrain,_f2_texture_create,_f2_texture_update,_f2_mesh_add,_f2_mesh_remove,_f2_mesh_transform,_f2_mesh_visible,_f2_items,_f2_points,_f2_lines,_f2_wide_lines,_f2_lights,_f2_labels,_f2_levels,_f2_clear,_f2_mesh_count
+exports=_f2_set_terrain,_f2_texture_create,_f2_texture_update,_f2_mesh_add,_f2_mesh_remove,_f2_mesh_transform,_f2_mesh_visible,_f2_items,_f2_points,_f2_lines,_f2_wide_lines,_f2_lights,_f2_labels,_f2_levels,_f2_clear,_f2_mesh_count,_f2_mesh_drop_copy,_f2_mesh_missing,_f2_mesh_refill
 KIT_SOURCE="$root/engine/bridge.cpp" KIT_OUT="$root/web/engine" KIT_NAME=forward-two \
 KIT_EXPORT_NAME=createForwardTwo KIT_EXPORTS="$exports" KIT_WORK="$work/build" \
 STRATA_TARBALL="$tarball" STRATA_SHA256="$STRATA_SHA256" \

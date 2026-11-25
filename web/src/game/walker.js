@@ -118,7 +118,8 @@ export class Walker {
     const f = (held.has("forward") ? 1 : 0) - (held.has("back") ? 1 : 0);
     const r = (held.has("right") ? 1 : 0) - (held.has("left") ? 1 : 0);
     // Camera-relative: forward is away from the eye, right is screen-right.
-    const fx = -Math.cos(cam.yaw), fz = -Math.sin(cam.yaw), rx = -Math.sin(cam.yaw), rz = Math.cos(cam.yaw);
+    // Strata's view is right-handed: screen-right is (sin yaw, -cos yaw). (0.1.0 had it mirrored: D walked left.)
+    const fx = -Math.cos(cam.yaw), fz = -Math.sin(cam.yaw), rx = Math.sin(cam.yaw), rz = -Math.cos(cam.yaw);
     let mx = fx * f + rx * r, mz = fz * f + rz * r;
     const ml = Math.hypot(mx, mz);
     const speed = g.input.shift ? RUN : WALK;
@@ -145,7 +146,7 @@ export class Walker {
     } else this.phase = lerp(this.phase, Math.round(this.phase / Math.PI) * Math.PI, clamp(dt * 8, 0, 1));
     const s = this.spot();
     const touch = g.input.touch;
-    g.hud.prompt(g.hud.anyOpen() ? null : s ? `${touch ? `<button class="btn" id="p-spot">${s.label}</button>` : `<kbd>E</kbd> ${s.label}`}` : touch ? null : `<span class="small"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Shift</kbd> run · drag to look</span>`);
+    g.hud.prompt(g.hud.anyOpen() ? null : s ? `${touch ? `<button class="btn" id="p-spot">${s.label}</button>` : `<kbd>E</kbd> ${s.label}`}` : touch ? `<span class="small"><b>▲ ▼ ◀ ▶</b> walk · hold <b>▲</b> to run · drag to look</span>` : `<span class="small"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> walk · <kbd>Shift</kbd> run · drag to look</span>`);
     const pb = document.getElementById("p-spot");
     if (pb && !pb.onclick) pb.onclick = () => this.interact();
   }
@@ -155,11 +156,25 @@ export class Walker {
     cam.tz = lerp(cam.tz, this.z, clamp(dt * 8, 0, 1));
     cam.ty = lerp(cam.ty, this.y + 1.5, clamp(dt * 6, 0, 1));
     if (performance.now() > this.game.camState.freeUntil) cam.dist = lerp(cam.dist, 7.5, clamp(dt * 2, 0, 1));
+    // Keep the eye out of trees, the truck and the camp's other solid things:
+    // march from the walker toward the eye and pull in short of the first one.
+    const reach = this.clearReach(cam, cam.dist);
+    if (reach < cam.dist) cam.dist = lerp(cam.dist, reach, clamp(dt * 10, 0, 1));
     // Keep the eye out of the hillside.
     const cp = Math.cos(cam.pitch);
     const ex = cam.tx + cam.dist * cp * Math.cos(cam.yaw), ez = cam.tz + cam.dist * cp * Math.sin(cam.yaw);
     const ground = heightAt(this.game.world, ex, ez) + 1.2;
     if (cam.ty + cam.dist * Math.sin(cam.pitch) < ground) cam.pitch = Math.min(1.3, Math.asin(clamp((ground - cam.ty) / cam.dist, -1, 1)));
+  }
+
+  // How far the camera can sit behind the walker before something solid is in the way.
+  clearReach(cam, want) {
+    const cp = Math.cos(cam.pitch), ux = cp * Math.cos(cam.yaw), uz = cp * Math.sin(cam.yaw);
+    for (let k = 1; k <= 10; k++) {
+      const d = want * k / 10;
+      if (this.blocked(this.x + ux * d, this.z + uz * d)) return Math.max(2.2, d - 1);
+    }
+    return want;
   }
 
   draw() {

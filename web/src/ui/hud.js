@@ -1,6 +1,7 @@
 // The heads-up display: where you are, the time, the guide's lane in rapids,
 // stability and flow, toasts, and the menus' entry points.
 import { LEAD, WINDOW } from "../sim/rapids.js";
+import { badge, placeBadge } from "./badges.js";
 
 const ICON = {
   forward: '<path d="M5 15l7-7 7 7"/>', back: '<path d="M5 9l7 7 7-7"/>',
@@ -66,18 +67,27 @@ export class Hud {
   intro() { if (this.game.params.get("skip") !== "1") this.panels.title?.open(); }
 
   discovery(p) {
-    this.card(`<div class="kicker">${p.kind ? "Landmark found" : "Camp found"}</div><b>${p.name}</b><span>${p.blurb || ""}</span>`);
+    this.card(`${placeBadge(p)}<div class="kicker">${p.kind ? "Landmark found" : "Camp found"}</div><b>${p.name}</b><span>${p.blurb || ""}</span>`);
     this.game.audio?.judgment?.("perfect");
   }
 
-  featCard(f) { this.card(`<div class="kicker">Feat</div><b>${f.name}</b><span>${f.text}</span>`); }
+  featCard(f) { this.card(`${badge(f.icon, true, { feat: true })}<div class="kicker">Feat</div><b>${f.name}</b><span>${f.text}</span>`); }
 
   raceResult(c, t, medal, pb) {
     const m = Math.floor(t / 60), s = (t - m * 60).toFixed(1);
     this.card(`<div class="kicker">${c.name}</div><b>${m ? m + ":" + s.padStart(4, "0") : s + " s"}${medal ? " · " + medal : ""}</b><span>${pb ? "Personal best!" : "Not your best."}</span>`);
   }
 
+  // Cards queue, so a discovery, a feat and a letter arriving together each get their turn.
   card(html) {
+    const now = performance.now(), at = Math.max(now, this.cardFree || 0);
+    if (at - now > 14000) { const t = document.createElement("div"); t.innerHTML = html; this.toast([...t.children].map((e) => e.textContent).join(" · "), 5); return; }
+    this.cardFree = at + 4500;
+    if (at > now) { setTimeout(() => this.showCard(html), at - now); return; }
+    this.showCard(html);
+  }
+
+  showCard(html) {
     const el = document.createElement("div");
     el.className = "cardpop"; el.innerHTML = html;
     this.root.appendChild(el);
@@ -113,15 +123,17 @@ export class Hud {
     const total = stats.perfect + stats.good + stats.miss;
     if (!total) return;
     const clean = stats.miss === 0;
-    this.toast(`${r.name}: ${stats.perfect} perfect, ${stats.good} good, ${stats.miss} missed${clean ? ". Clean line!" : ""}`, 4);
+    const drive = stats.drive || stats.dropped ? ` · drive ${stats.drive || 0}/${(stats.drive || 0) + (stats.dropped || 0)}` : "";
+    this.toast(`${r.name}: ${stats.perfect} perfect, ${stats.good} good, ${stats.miss} missed${drive}${clean ? ". Clean line!" : ""}`, 4);
   }
 
   judgment(j, call) {
     const el = this.$("h-judge");
     el.className = "judge on " + j;
-    el.textContent = { perfect: "Perfect", good: "Good", late: "Late", miss: "Miss", wrong: "Wrong way" }[j] || j;
+    el.textContent = { perfect: "Perfect", good: "Good", early: "Early", late: "Late", miss: "Miss", wrong: "Wrong way" }[j] || j;
     clearTimeout(this.judgeTimer);
     this.judgeTimer = setTimeout(() => el.classList.remove("on"), 650);
+    this.game.input?.haptic?.(j);
     void call;
   }
 
@@ -154,18 +166,22 @@ export class Hud {
     // The lane.
     const inLane = !!g.caller.rapid || b.swimming;
     this.lane.classList.toggle("on", inLane);
+    // The gate pulses on the guide's beat, so the tempo is felt before the first marker lands.
+    const ph = g.caller.rapid ? (((g.time - g.caller.beat) / g.caller.interval) % 1 + 1) % 1 : 1;
+    this.lane.classList.toggle("beat", ph < 0.14);
     const seen = new Set();
     for (const c of g.caller.calls) {
       seen.add(c);
       let m = this.markers.get(c);
       if (!m) {
         m = document.createElement("div");
-        m.className = "marker " + c.call;
+        m.className = "marker " + c.call + (c.fill ? " fill" : "");
         m.innerHTML = svg(c.call) + `<span>${CALL_WORD[c.call]}</span>`;
         this.lane.appendChild(m); this.markers.set(c, m);
       }
       const f = (c.time - g.time) / LEAD;            // 1 at spawn → 0 at the gate
-      m.style.transform = `translateX(${Math.max(-0.15, f) * 84}cqw)`;
+      m.style.transform = `translateX(${Math.max(-0.15, Math.min(1, f)) * 84}cqw)`;
+      m.style.opacity = f > 1 ? Math.max(0, (1.25 - f) / 0.25).toFixed(2) : "";   // calls further out than LEAD fade in at the lane's end
       m.classList.toggle("near", Math.abs(c.time - g.time) < WINDOW.good);
     }
     for (const [c, m] of this.markers) if (!seen.has(c)) {

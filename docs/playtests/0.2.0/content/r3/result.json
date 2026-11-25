@@ -1,0 +1,32 @@
+{
+ "claimed": [
+  "first-water",
+  "honest-work",
+  "brightwater"
+ ],
+ "jobs": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\nWren's errand: a parcel for Gorge Lookout 637 m\n7 hours · 95 pay\nTake\nrope coils to Brightwater Lodge 708 mupstream\n9 hours · 80 pay\nTake\nmedicine to Coldwater Mill 667 mfragile\n6 hours · 60 pay\nTake\nrope coils to Mirror Dock 1634 m\n9 hours · 75 pay\nTake",
+ "took": "Wren's errand: a parcel for Gorge Lookout",
+ "goalLine": [],
+ "funded": [
+  1,
+  2,
+  3,
+  4
+ ],
+ "lightGeo": {
+  "ux": 1,
+  "uz": 0,
+  "r": 10,
+  "gy": 3.9554396478624416,
+  "home": {
+   "x": 2985.7967653788337,
+   "z": 2866.9606172759245
+  },
+  "lamp": {
+   "x": 2994.7967653788337,
+   "y": 17.95543964786244,
+   "z": 2861.9606172759245
+  }
+ },
+ "logs": []
+}

@@ -15,6 +15,8 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .where { text-shadow: 0 2px 8px rgba(0,0,0,.6); min-width: 0; }
 .where-main { font-size: clamp(18px, 2.6vw, 26px); font-weight: 800; letter-spacing: .02em; }
 .where-sub { font-size: 13px; color: var(--ink-dim); margin-top: 2px; }
+.where-goal { display: block; max-width: min(520px, 62vw); margin-top: 4px; padding: 0; border: 0; background: none; color: #7fe0ff; font: 600 13px/1.3 system-ui, sans-serif; text-align: left; text-shadow: inherit; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.where-goal[hidden] { display: none; }
 .hud-right { display: flex; gap: 8px; align-items: center; }
 .clock { background: var(--panel); border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; font-variant-numeric: tabular-nums; font-size: 14px; }
 .iconbtn { width: 42px; height: 42px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--ink); display: grid; place-items: center; cursor: pointer; }
@@ -39,6 +41,11 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 
 .lane { position: absolute; left: 50%; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 110px); transform: translateX(-50%); width: min(640px, 92vw); height: 64px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); container-type: inline-size; opacity: 0; transition: opacity .3s; overflow: hidden; }
 .lane.on { opacity: 1; }
+.lane .gate { transition: box-shadow .08s, border-color .08s; }
+/* Without the touch pad the lane sits at the very bottom, under the boat
+   rather than across it; with the pad it stays above the buttons. */
+#ui:not(:has(.pad.on)) .lane { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 4px); }
+.lane.beat .gate { border-color: #fff6d6; box-shadow: 0 0 26px rgba(255,209,102,.85) inset, 0 0 12px rgba(255,209,102,.5); }
 .gate { position: absolute; left: 12%; top: 6px; bottom: 6px; width: 54px; margin-left: -27px; border-radius: 12px; border: 3px solid var(--accent-2); box-shadow: 0 0 18px rgba(255,209,102,.35) inset; }
 .marker { position: absolute; left: 12%; top: 8px; width: 48px; height: 48px; margin-left: -24px; border-radius: 12px; display: grid; place-items: center; background: #222; border: 2px solid #fff3; will-change: transform; }
 .marker span { position: absolute; top: -18px; font-size: 11px; font-weight: 800; white-space: nowrap; opacity: 0; }
@@ -48,12 +55,14 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .marker.left { background: #12384d; color: var(--left); border-color: var(--left); }
 .marker.right { background: #4d2e12; color: var(--right); border-color: var(--right); }
 .marker.near { box-shadow: 0 0 16px currentColor; }
+.marker.fill { width: 36px; height: 36px; margin-left: -18px; top: 14px; border-radius: 50%; opacity: .85; }
+.marker.fill svg { width: 22px; height: 22px; }
 .marker.gone-hit { transition: .35s; opacity: 0; transform: translateX(0) scale(1.6) !important; }
 .marker.gone-miss { transition: .35s; opacity: 0; transform: translateX(-10cqw) translateY(20px) rotate(-30deg) !important; }
 .judge { position: absolute; left: 12%; bottom: 70px; transform: translateX(-50%) scale(.8); font-weight: 900; font-size: 22px; opacity: 0; transition: .15s; text-shadow: 0 2px 8px #000; white-space: nowrap; }
 .lane { overflow: visible; }
 .judge.on { opacity: 1; transform: translateX(-50%) scale(1); }
-.judge.perfect { color: var(--accent-2); } .judge.good { color: var(--good); } .judge.late { color: #9bd; } .judge.miss, .judge.wrong { color: var(--bad); }
+.judge.perfect { color: var(--accent-2); } .judge.good { color: var(--good); } .judge.late, .judge.early { color: #9bd; } .judge.miss, .judge.wrong { color: var(--bad); }
 
 .flash { position: absolute; top: 34%; left: 50%; transform: translate(-50%, 0) scale(.9); font-size: clamp(18px, 3vw, 28px); font-weight: 800; opacity: 0; transition: .2s; text-shadow: 0 2px 12px #000; text-align: center; max-width: 90vw; }
 .flash.on { opacity: 1; transform: translate(-50%, 0) scale(1); }
@@ -62,6 +71,13 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .toast.out { opacity: 0; transform: translateX(20px); }
 .prompt { position: absolute; left: 50%; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 190px); transform: translateX(-50%); background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 10px 16px; font-size: 15px; opacity: 0; transition: .25s; pointer-events: auto; text-align: center; }
 .prompt.on { opacity: 1; }
+/* Keep the prompt off the boat: low on the screen, lifted above the lane in a
+   rapid and above the emote button on touch. */
+.prompt { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 8px); }
+#ui:has(.pad.on) .prompt { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 112px); max-width: calc(100vw - 32px); }
+#ui:has(.pad.on) .prompt button { margin: 4px 0 0 10px; }
+#ui:not(:has(.pad.on)) .lane.on ~ .prompt { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 84px); }
+#ui:has(.pad.on) .lane.on ~ .prompt { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 190px); }
 .prompt kbd, .panel kbd { background: #fff2; border: 1px solid #fff4; border-bottom-width: 3px; border-radius: 6px; padding: 1px 7px; font-family: var(--font); font-size: 13px; }
 .prompt button { margin-left: 8px; }
 .vignette { position: absolute; inset: 0; box-shadow: inset 0 0 160px rgba(200,30,30,.9); opacity: 0; transition: opacity .2s; }
@@ -76,6 +92,14 @@ svg { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width:
 .pad button[data-s=left] { border-color: var(--left); color: var(--left); }
 .pad button[data-s=right] { border-color: var(--right); color: var(--right); }
 .pad button.down { background: rgba(255,255,255,.25); transform: scale(.94); }
+/* The signals button sits above the turn buttons, not in the bottom row, which
+   is already full on a 390 px phone. Its fan opens upward. */
+.pad .pad-emotes { position: absolute; left: max(16px, env(safe-area-inset-left)); bottom: calc(max(16px, env(safe-area-inset-bottom)) + 4px + 76px + 14px); flex-direction: column-reverse; align-items: center; gap: 8px; }
+.pad .pad-emotes button { width: 48px; height: 48px; border-color: #fff4; }
+.pad .pad-emotes button svg { width: 24px; height: 24px; stroke-width: 2.2; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+.pad .emote-fan { display: none; flex-direction: column; gap: 8px; pointer-events: none; }
+.pad .pad-emotes.open .emote-fan { display: flex; }
+.pad .pad-emotes.open .emote-toggle { background: rgba(255,255,255,.2); }
 
 /* Panels */
 .panel { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; background: rgba(3,10,14,.55); backdrop-filter: blur(3px); -webkit-backdrop-filter: blur(3px); padding: 16px; }
@@ -124,3 +148,67 @@ input[type=text] { font: 16px var(--font); padding: 10px 12px; border-radius: 10
 .online-chip { color: var(--ink-dim); cursor: pointer; font: 13px var(--font); }
 .online-chip.live { color: var(--good); }
 @media (max-width: 560px) { .online-chip { display: inline-block !important; font-size: 12px; padding: 5px 9px; } }
+
+/* The coach: first-five-minutes steps and quiet-river hints (game/coach.js). */
+.coach { position: absolute; left: 50%; top: calc(max(12px, env(safe-area-inset-top)) + 64px); transform: translate(-50%, -8px); width: max-content; display: flex; align-items: center; gap: 10px; max-width: min(520px, calc(100vw - 32px)); background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--accent-2); border-radius: 12px; padding: 8px 14px; font-size: 15px; line-height: 1.35; opacity: 0; transition: opacity .3s, transform .3s; pointer-events: none; }
+.coach.on { opacity: 1; transform: translate(-50%, 0); }
+.coach.tip { border-left-color: var(--fwd); }
+.coach kbd { background: #fff2; border: 1px solid #fff4; border-bottom-width: 3px; border-radius: 6px; padding: 1px 7px; font-family: var(--font); font-size: 13px; }
+.coach-arrow { flex: none; width: 26px; height: 26px; fill: var(--accent-2); stroke: none; transition: transform .15s linear; }
+.coach-dist { flex: none; font-size: 13px; color: var(--ink-dim); font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) {
+  .coach { top: calc(max(12px, env(safe-area-inset-top)) + 150px); font-size: 14px; }
+  .where-sub { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 44vw; }
+}
+@media (prefers-reduced-motion: reduce) { .coach, .coach-arrow { transition: none; } }
+/* Phones held sideways: little height. The lane drops between the two button
+   clusters, the prompt moves up under the coach (off the boat), and the
+   signals fan opens sideways instead of over the meters. */
+@media (max-height: 500px) {
+  #ui:has(.pad.on) .lane { bottom: calc(max(16px, env(safe-area-inset-bottom)) + 4px); width: calc(100vw - 400px); height: 56px; }
+  #ui:has(.pad.on) .prompt, #ui:has(.pad.on) .lane.on ~ .prompt { bottom: auto; top: calc(max(12px, env(safe-area-inset-top)) + 150px); }
+  .pad .pad-emotes, .pad .emote-fan { flex-direction: row; }
+}
+/* Badges and tiles: visuals first, details on tap (journal). */
+.badge, .boatart { stroke: none; }
+.tile { position: relative; transition: transform .12s, border-color .12s, background .12s; }
+.tile:hover, .tile:focus-visible { transform: translateY(-2px); border-color: #ffffff40; background: #ffffff12; outline: none; }
+.tile .badge.on { filter: drop-shadow(0 3px 8px rgba(0,0,0,.45)); }
+.journal .tiles { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 8px; }
+.journal .tile { padding: 8px 6px 10px; }
+.journal .tile b { font-size: 12.5px; line-height: 1.2; }
+.journal .tile .small { display: none; }
+.journal .tile:focus .small, .journal .tile:focus-within .small {
+  display: block; position: absolute; z-index: 2; left: 50%; top: calc(100% - 6px); transform: translateX(-50%);
+  width: max(170px, 100%); padding: 8px 10px; border-radius: 10px; background: #08141b; border: 1px solid #ffd16655;
+  color: var(--ink); box-shadow: 0 10px 24px rgba(0,0,0,.6); font-size: 12.5px; line-height: 1.35;
+}
+.journal .tile:focus { border-color: var(--accent-2); }
+.chips { display: flex; gap: 10px; flex-wrap: wrap; margin: 2px 0 6px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px 4px 4px; border-radius: 999px; background: #ffffff0d; border: 1px solid var(--line); font-variant-numeric: tabular-nums; }
+.chip svg { width: 34px; height: 34px; }
+.chip b { font-size: 17px; }
+.chip i { font-style: normal; color: var(--ink-dim); font-size: 13px; }
+.chip.pay { padding-left: 12px; border-color: #ffd16655; }
+.chip.pay b { color: var(--accent-2); }
+.tag.gold { background: #ffd166; color: #3a2a00; } .tag.silver { background: #cfd8dc; color: #222; } .tag.bronze { background: #c98a52; color: #2a1400; }
+.tile .boatart { width: 100%; max-width: 120px; height: 56px; display: block; margin: 0 auto 6px; filter: drop-shadow(0 3px 5px rgba(0,0,0,.5)); }
+.tile .price { color: var(--accent-2); font-weight: 700; }
+.tile .stats { display: grid; grid-template-columns: auto 1fr; gap: 3px 8px; align-items: center; margin-top: 8px; text-align: left; font-size: 11px; color: var(--ink-dim); }
+.pips { display: inline-flex; gap: 3px; }
+.pips i { width: 9px; height: 9px; border-radius: 50%; background: #ffffff1c; }
+.pips i.on { background: var(--accent-2); box-shadow: 0 0 5px #ffd16688; }
+@media (prefers-reduced-motion: reduce) { .tile { transition: none; } .tile:hover, .tile:focus-visible { transform: none; } }
+.btn.tab { display: inline-flex; align-items: center; gap: 8px; }
+.btn.tab svg { width: 18px; height: 18px; }
+.cardpop .badge { width: 64px !important; height: 68px !important; margin: 0 auto 2px; display: block; filter: drop-shadow(0 4px 10px rgba(0,0,0,.5)); }
+.cardpop.on .badge { animation: badge-in .5s cubic-bezier(.2,1.6,.4,1) both; }
+@keyframes badge-in { from { transform: scale(.4) rotate(-20deg); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .cardpop.on .badge { animation: none; } }
+
+/* Title: a painted valley along the bottom of the card. */
+.title-card { position: relative; background:
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 720 130' preserveAspectRatio='xMidYMax slice'%3E %3Ccircle cx='600' cy='48' r='18' fill='%23ffd166' fill-opacity='.55'/%3E %3Cpath d='M0 95 L90 40 L150 72 L230 18 L320 80 L400 46 L470 80 L540 58 L620 90 L720 70 L720 130 L0 130z' fill='%231d3a44'/%3E %3Cpath d='M230 18 L250 34 L238 32 L228 40 L214 30z M90 40 L103 50 L92 48 L80 54z' fill='%23cfe3ea' fill-opacity='.7'/%3E %3Cpath d='M0 110 L70 86 L140 104 L210 82 L300 108 L380 88 L470 110 L560 94 L640 114 L720 104 L720 130 L0 130z' fill='%23163029'/%3E %3Cpath d='M235 130 C 260 112, 200 104, 250 92 S 330 84, 300 72 S 262 62, 280 52' stroke='%234cc3ff' stroke-opacity='.55' stroke-width='5' fill='none' stroke-linecap='round'/%3E %3Cpath d='M560 124 l14-19 14 19z' fill='%23ff9a3c' fill-opacity='.8'/%3E%3Ccircle cx='598' cy='122' r='3' fill='%23ffd166'/%3E %3C/svg%3E") left bottom / 100% clamp(70px, 14vw, 120px) no-repeat,
+  linear-gradient(160deg, rgba(13,27,36,.97), rgba(30,22,12,.97)); padding-bottom: clamp(70px, 14vw, 120px); }
+.title-card h1 { text-shadow: 0 3px 0 #0006, 0 0 30px #ff7a2f33; }
+.title-card .keys div { display: flex; flex-wrap: wrap; align-items: center; gap: 4px; }

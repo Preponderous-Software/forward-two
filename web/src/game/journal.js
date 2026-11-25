@@ -13,6 +13,22 @@ export const FEATS = [
   { id: "courier", name: "Courier", text: "Deliver five loads.", icon: "crate" },
   { id: "gold", name: "Gold Medal", text: "Win gold on any race course.", icon: "medal" },
   { id: "sea", name: "Source to Sea", text: "Reach the sea after starting at Tarn Spring.", icon: "sea" },
+  // 0.2.0: ids are saved, so never rename one.
+  { id: "gentle", name: "Gentle Hands", text: "Deliver a fragile load on time without a scratch.", icon: "egg" },
+  { id: "uphill", name: "Against the Current", text: "Deliver an upstream load on time.", icon: "upstream" },
+  { id: "rush", name: "Beat the Clock", text: "Deliver a rush job on time.", icon: "clock" },
+  { id: "night-run", name: "Lantern Run", text: "Finish a job on time after dark.", icon: "lantern" },
+  { id: "passenger", name: "Ferryman", text: "Get a passenger to their stop on time and happy.", icon: "person" },
+  { id: "survey", name: "Surveyor", text: "Sketch a landmark and bring it back.", icon: "sketch" },
+  { id: "three-rivers", name: "Three Rivers", text: "Paddle the Long Water, the Brightwater and the Coldwater.", icon: "rivers" },
+  { id: "fleet", name: "Full Fleet", text: "Own all four boats.", icon: "boats" },
+  { id: "kitted", name: "Well Kitted", text: "Fit every piece of gear.", icon: "patch" },
+  { id: "descent", name: "The Long Way Down", text: "Finish the Descent race.", icon: "descent" },
+  { id: "podium", name: "On the Podium", text: "Win a medal on every race course.", icon: "podium" },
+  { id: "golden", name: "Golden Water", text: "Win gold on every race course.", icon: "medal" },
+  { id: "beachcomber", name: "Beachcomber", text: "Pick up every river find.", icon: "bottle" },
+  { id: "keeper", name: "Keeper of the Long Water", text: "Finish Wren's letters.", icon: "lighthouse" },
+  { id: "lightkeeper", name: "Lightkeeper", text: "Restore Saltmouth Light, every stage.", icon: "lantern" },
 ];
 
 export class Journal {
@@ -38,11 +54,12 @@ export class Journal {
     this.pay = data.pay || 0; this.deliveries = data.deliveries || 0;
     if (data.explored) { try { const s = atob(data.explored); for (let i = 0; i < s.length && i < this.explored.length; i++) this.explored[i] = s.charCodeAt(i); } catch (_) { /* keep blank */ } }
     this.fromSource = !!data.fromSource;
+    if (typeof data.night === "number" && data.night >= 0) this.nightTime = data.night;
   }
 
   data() {
     let s = ""; for (const v of this.explored) s += String.fromCharCode(v);
-    return { found: [...this.found], feats: [...this.feats], visited: [...this.visited], pay: this.pay, deliveries: this.deliveries, explored: btoa(s), fromSource: this.fromSource };
+    return { found: [...this.found], feats: [...this.feats], visited: [...this.visited], pay: this.pay, deliveries: this.deliveries, explored: btoa(s), fromSource: this.fromSource, night: Math.round(this.nightTime) };
   }
 
   discover(p) {
@@ -75,6 +92,7 @@ export class Journal {
     if (rapid.cls >= 3 && stats.miss === 0 && stats.perfect + stats.good >= 3) { this.feat("clean-line"); this.game.audio?.bark?.("clean"); }
     if (rapid.name === "The Throat" && boat.flips === (this.throatFlips ?? boat.flips)) this.feat("throat");
     this.throatFlips = boat.flips;
+    this.game.jobs?.onRapid?.(rapid, stats);
   }
   onDrop(h) { if (h > 8) this.feat("falls"); }
   onFlow() { this.feat("flow"); }

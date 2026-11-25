@@ -13,7 +13,7 @@ export const CAMPS = [
   { id: "fork", name: "Meadow Fork", river: "long", f: 0.335, side: -1, flag: [0.95, 0.45, 0.1], blurb: "Where the Brightwater meets the Long Water. Everyone starts here." },
   { id: "tarn", name: "Tarn Hut", river: "long", f: 0.03, side: 1, flag: [0.4, 0.7, 1], blurb: "A stone hut by the spring at the top of the world." },
   { id: "lodge", name: "Brightwater Lodge", river: "bright", f: 0.4, side: 1, flag: [1, 0.85, 0.2], blurb: "Log lodge, warm stove, cold creek." },
-  { id: "lookout", name: "Gorge Lookout", river: "long", f: 0.5, side: 1, flag: [0.9, 0.2, 0.2], blurb: "Last flat water before the gorge. Scout it from here." },
+  { id: "lookout", name: "Gorge Lookout", river: "long", f: 0.44, side: 1, flag: [0.9, 0.2, 0.2], blurb: "Last flat water before the gorge. Scout it from here." },
   { id: "dock", name: "Mirror Dock", river: "lake", f: 0, side: 1, flag: [0.3, 0.9, 0.8], blurb: "A long dock on the east shore of Mirror Lake." },
   { id: "mill", name: "Coldwater Mill", river: "cold", f: 0.52, side: -1, flag: [0.7, 0.5, 0.9], blurb: "The old mill still turns. The miller trades in cargo." },
   { id: "ferry", name: "Ferry Landing", river: "long", f: 0.84, side: -1, flag: [0.2, 0.5, 0.95], blurb: "The ferry crossing below the lake." },
@@ -144,6 +144,17 @@ export class Places {
       const [wx, wz] = P(-1.75, 1.6); b.box(wx, y + 1.7, wz, 0.07, 0.35, 0.4, [1, 0.85, 0.45], yaw);
       this.lights.push({ x: wx + Math.cos(yaw) * 0.6, y: y + 1.8, z: wz + Math.sin(yaw) * 0.6, r: 9, c: [1, 0.75, 0.4], i: 1.1, window: true });
       if (c.id === "town") {
+        // The harbour: fishing boats with masts, moored off the quay.
+        for (const [lx, lz, col] of [[10, -6, [0.2, 0.35, 0.7]], [13, 5.5, [0.85, 0.85, 0.8]], [8, 9, [0.7, 0.2, 0.15]]]) {
+          const [mx, mz] = P(lx, lz), wl = waterAt(this.game.world, mx, mz);
+          if (Number.isNaN(wl)) continue;
+          const my = yaw + Math.PI / 2 + (lx % 3) * 0.2;
+          b.box(mx, wl + 0.25, mz, 2.4, 0.35, 0.85, col, my, [0.55, 0.4, 0.25]);
+          b.box(mx, wl + 0.65, mz, 0.6, 0.3, 0.55, [0.92, 0.9, 0.85], my);
+          b.frustum(mx, wl + 0.5, mz, 0.06, 0.04, 5.5, 5, WOOD_D);
+          const [ex, ez] = [mx + Math.cos(my) * 2.0, mz + Math.sin(my) * 2.0];
+          b.poly2([[mx, wl + 5.6, mz], [mx, wl + 1.6, mz], [ex, wl + 1.6, ez]], [0.9, 0.86, 0.75]);
+        }
         for (let k = 0; k < 6; k++) {
           const [tx, tz] = P(-12 - (k % 3) * 8, (k < 3 ? -1 : 1) * (7 + rnd() * 3));
           const ty = heightAt(this.game.world, tx, tz);
@@ -181,11 +192,66 @@ export class Places {
     this.lights.push({ x: fx, y: y + 1.0, z: fz, r: 14, c: [1, 0.55, 0.2], i: 1.6, fire: true });
     // Flag pole.
     const [px, pz] = P(2.5, 3.5);
-    b.frustum(px, y, pz, 0.08, 0.06, 7, 5, [0.85, 0.85, 0.85]);
-    c.flagAt = { x: px, y: y + 6.3, z: pz };
+    b.frustum(px, y, pz, 0.1, 0.07, 9, 5, [0.85, 0.85, 0.85]);
+    b.frustum(px, y + 9, pz, 0.16, 0, 0.3, 5, [0.95, 0.8, 0.3]);
+    c.flagAt = { x: px, y: y + 8.2, z: pz };
     const flag = new MeshBuilder();
-    flag.poly2([[0, 0.6, 0], [0, -0.6, 0], [2.0, -0.4, 0], [2.0, 0.4, 0]], c.flag);
-    this.anim.push({ kind: "flag", camp: c, mesh: flag.build(), x: px, y: y + 6.3, z: pz, phase: rnd() * 6 });
+    flag.poly2([[0, 0.9, 0], [0, -0.9, 0], [3.2, -0.6, 0], [3.2, 0.6, 0]], c.flag);
+    this.anim.push({ kind: "flag", camp: c, mesh: flag.build(), x: px, y: y + 8.2, z: pz, phase: rnd() * 6 });
+    // Things that make a camp read as a camp from the water: a landing arch
+    // with the camp's colour, lanterns on the dock and the path, bunting, a
+    // woodpile and a canoe turned over on the bank.
+    const flagC = c.flag || [0.9, 0.5, 0.2], pale = [lerp(flagC[0], 1, 0.55), lerp(flagC[1], 1, 0.55), lerp(flagC[2], 1, 0.55)];
+    const gy = (lx, lz) => { const [qx, qz] = P(lx, lz); return Math.max(y, heightAt(this.game.world, qx, qz)); };
+    // The arch is tall enough that the walker's chase camera passes under its sign.
+    for (const s of [-1, 1]) { const [ax, az] = P(3.6, s * 1.7); b.box(ax, gy(3.6, s * 1.7) + 2.5, az, 0.13, 2.5, 0.13, WOOD_D, yaw); c.obstacles.push({ x: ax, z: az, r: 0.3 }); }
+    { const [ax, az] = P(3.6, 0), ay = gy(3.6, 0); b.box(ax, ay + 5.0, az, 0.16, 0.12, 2.2, WOOD, yaw); b.box(ax, ay + 4.55, az, 0.08, 0.32, 1.45, pale, yaw); b.box(ax + Math.cos(yaw) * 0.03, ay + 4.55, az + Math.sin(yaw) * 0.03, 0.08, 0.22, 1.3, flagC, yaw); }
+    c.lanterns = [];
+    for (const s of [-1, 1]) { const [lx2, lz2] = P(11.5, s * 1.25); b.box(lx2, c.level + 1.25, lz2, 0.13, 0.16, 0.13, [1, 0.82, 0.45], yaw); c.lanterns.push({ x: lx2, y: c.level + 1.25, z: lz2 }); }
+    for (const [lx, lz] of [[1.8, 2.0], [-2.2, -6.0]]) {
+      const [qx, qz] = P(lx, lz), qy = gy(lx, lz);
+      b.box(qx, qy + 0.9, qz, 0.07, 0.9, 0.07, WOOD_D, yaw); b.box(qx, qy + 1.88, qz, 0.14, 0.15, 0.14, [1, 0.82, 0.45], yaw);
+      c.lanterns.push({ x: qx, y: qy + 1.88, z: qz }); c.obstacles.push({ x: qx, z: qz, r: 0.3 });
+    }
+    { // Bunting from the flag pole to the arch, along the bank and above head height.
+      const [ax, az] = P(2.5, 3.5), [bx2, bz2] = P(3.6, -1.7), N = 7, cols = [flagC, pale, [0.95, 0.9, 0.8]];
+      for (let k = 0; k < N; k++) {
+        const t0 = (k + 0.15) / N, t1 = (k + 0.85) / N, sag = (t) => 6.2 - Math.sin(t * Math.PI) * 0.8 - t * 1.2;
+        const p0 = [lerp(ax, bx2, t0), y + sag(t0), lerp(az, bz2, t0)], p1 = [lerp(ax, bx2, t1), y + sag(t1), lerp(az, bz2, t1)];
+        const tip = [(p0[0] + p1[0]) / 2, (p0[1] + p1[1]) / 2 - 0.42, (p0[2] + p1[2]) / 2];
+        b.poly2([p0, p1, tip], cols[k % 3]);
+        c.lanterns.push({ x: p0[0], y: p0[1] - 0.05, z: p0[2], small: true });
+      }
+    }
+    { // Woodpile by the fire.
+      const [wx2, wz2] = P(-2.2, -3.4);
+      for (let k = 0; k < 5; k++) b.box(wx2 + Math.cos(yaw) * ((k % 3) - 1) * 0.28 + (k > 2 ? Math.cos(yaw) * 0.14 : 0), y + 0.14 + (k > 2 ? 0.26 : 0), wz2 + Math.sin(yaw) * ((k % 3) - 1) * 0.28, 0.12, 0.12, 0.55, [0.5, 0.34, 0.2], yaw);
+      c.obstacles.push({ x: wx2, z: wz2, r: 0.7 });
+    }
+    { // Boats pulled up on the bank in a row, bright enough to read from the water.
+      const cols = [[0.95, 0.75, 0.1], [0.85, 0.2, 0.12], [0.15, 0.5, 0.85], [0.2, 0.65, 0.35]];
+      for (let k = 0; k < 4; k++) {
+        const lz = -2.6 - k * 1.05, [kx2, kz2] = P(4.6, lz), ky2 = gy(4.6, lz);
+        b.box(kx2, ky2 + 0.18, kz2, 1.55, 0.16, 0.3, cols[(k + c.id.length) % 4], yaw + Math.PI / 2 + 0.08 * (k % 2 ? 1 : -1));
+        b.box(kx2, ky2 + 0.36, kz2, 0.35, 0.04, 0.22, [0.08, 0.08, 0.1], yaw + Math.PI / 2);
+      }
+      const [qx, qz] = P(4.6, -4.2); c.obstacles.push({ x: qx, z: qz, r: 2.2 });
+    }
+    if (!big) { // A small cabin with a porch light behind the tents.
+      const [hx, hz] = P(-9.6, 1.5), hy = gy(-9.6, 1.5);
+      b.box(hx, hy + 1.2, hz, 2.2, 1.3, 1.8, WOOD, yaw);
+      this.roof(b, hx, hy + 2.5, hz, 2.5, 2.1, 1.4, ROOF, yaw);
+      const [wx3, wz3] = P(-7.35, 0.8); b.box(wx3, hy + 1.4, wz3, 0.06, 0.3, 0.35, [1, 0.85, 0.45], yaw);
+      const [dx3, dz3] = P(-7.35, 2.6); b.box(dx3, hy + 0.9, dz3, 0.06, 0.9, 0.45, WOOD_D, yaw);
+      c.obstacles.push({ x: hx, z: hz, r: 2.6 });
+      this.lights.push({ x: wx3 + Math.cos(yaw) * 0.6, y: hy + 1.6, z: wz3 + Math.sin(yaw) * 0.6, r: 8, c: [1, 0.75, 0.4], i: 0.9, window: true });
+    }
+    { // A canoe turned over on the bank.
+      const [ux, uz] = P(3.4, 6.2), uy = gy(3.4, 6.2);
+      b.box(ux, uy + 0.28, uz, 0.42, 0.22, 2.0, [0.2, 0.5, 0.35], yaw + 0.25);
+      b.box(ux, uy + 0.08, uz, 0.48, 0.05, 2.05, [0.55, 0.38, 0.2], yaw + 0.25);
+      c.obstacles.push({ x: ux, z: uz, r: 1.2 });
+    }
     // Shuttle truck at the camps that have a road (all of them, for now).
     const [kx, kz] = P(-9, -6.5);
     c.obstacles.push({ x: kx, z: kz, r: 2.4 });
@@ -332,7 +398,7 @@ export class Places {
     }
     const sp = Math.hypot(b.vx, b.vz);
     if (g.walker?.active) return;
-    g.hud.prompt(c && !g.hud.anyOpen() ? `<b>${c.name}</b> · ${g.input.touch ? `<button class="btn" id="p-camp">Go ashore</button>` : "<kbd>E</kbd> go ashore and walk around"}` : g.races?.promptHtml?.() || null);
+    g.hud.prompt(c && !g.hud.anyOpen() ? (g.input.touch ? `<b>${c.name}</b> <button class="btn" id="p-camp">Go ashore</button>` : `<b>${c.name}</b> · <kbd>E</kbd> go ashore and walk around`) : g.races?.promptHtml?.() || null);
     const pb = document.getElementById("p-camp");
     if (pb && !pb.onclick) pb.onclick = () => this.interact();
     void sp;
@@ -363,6 +429,11 @@ export class Places {
           R.points.push(l.x + Math.sin(t * 3 + k) * 0.2, l.y - 0.3 + u * 2.2, l.z + Math.cos(t * 2 + k) * 0.2, 7 * (1 - u) + 2, 0.25, 1, 0.6, 0.2, 1 - u, POINT_SOFT);
         }
         R.points.push(l.x, l.y - 0.2, l.z, 26, 1.2, 1, 0.5, 0.15, 0.8, POINT_SOFT);
+        // A thin plume of wood smoke, so a camp shows from up the river by day.
+        if (night < 0.7) for (let k = 0; k < 7; k++) {
+          const u = (t * 0.12 + k / 7) % 1, drift = u * u * 3;
+          R.points.push(l.x + drift + Math.sin(t * 0.7 + k) * 0.3 * u, l.y + 0.8 + u * 9, l.z + drift * 0.4, 10, 0.8 + u * 2.6, 0.78, 0.78, 0.8, 0.32 * (1 - u) * Math.min(1, u * 6) * (1 - night), POINT_SOFT);
+        }
       } else if (night > 0.2) {
         R.lights.push(l.x, l.y, l.z, l.r, l.c[0], l.c[1], l.c[2], l.i * night, l.lighthouse ? 2 : 1, 0, 0, 0);
         if (l.lighthouse) {
@@ -371,6 +442,15 @@ export class Places {
           for (let k = 1; k < 36; k++) R.points.push(l.x + Math.cos(a) * k * 6, l.y - k * 0.08, l.z + Math.sin(a) * k * 6, 26 - k * 0.5, 2.5 + k * 0.35, 1, 0.92, 0.65, 0.42 * night * (1 - k / 36), POINT_SOFT);
           R.points.push(l.x, l.y, l.z, 40, 2, 1, 0.95, 0.7, night, POINT_SOFT);
         } else R.points.push(l.x, l.y, l.z, 14, 0.6, 1, 0.8, 0.45, 0.6 * night, POINT_SOFT);
+      }
+    }
+    // Camp lanterns: warm glows at dusk and after dark.
+    if (night > 0.05) for (const c of this.camps) {
+      if (!c.lanterns || Math.hypot(c.x - b.x, c.z - b.z) > 520) continue;
+      for (const l of c.lanterns) {
+        if (l.small) { R.points.push(l.x, l.y, l.z, 9, 0.35, 1, 0.8, 0.45, 0.9 * night, POINT_SOFT); continue; }
+        R.points.push(l.x, l.y, l.z, 26, 1.4, 1, 0.62, 0.22, 0.7 * night, POINT_SOFT);
+        R.points.push(l.x, l.y, l.z, 6, 0.22, 1, 0.86, 0.5, night, POINT_SOFT);
       }
     }
     // Landmark effects: mist at the falls, steam at the spring.

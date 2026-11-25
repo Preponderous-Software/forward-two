@@ -1,0 +1,25 @@
+// Round 3: the phone path (touch, portrait), driven through the pad's own buttons.
+const press = (s, down) => `(() => { const b = document.querySelector('.pad button[data-s=${s}]'); b.dispatchEvent(new PointerEvent('${down ? 'pointerdown' : 'pointerup'}', { pointerId: 7, bubbles: true })); return { touch: __f2.input.touch, padOn: document.querySelector('.pad').classList.contains('on') }; })()`;
+module.exports = { query: '&new=1&coach=1', steps: [
+  { label: 'title', frames: 1, shot: 'r3-00-title-phone', page: true },
+  { js: "document.getElementById('t-go')?.click(); 'go'" },
+  { js: press('forward', true), label: 'tap fwd' }, { label: 'hold ▲', sim: 2.5 }, { js: press('forward', false) },
+  { label: 'coach turn', sim: 0.2, shot: 'r3-01-phone-coach', page: true },
+  { js: press('left', true) }, { sim: 1.0 }, { js: press('left', false) }, { js: press('right', true) }, { sim: 0.2 }, { js: press('right', false) },
+  { js: "document.querySelector('.emote-toggle').click(); [...document.querySelectorAll('.pad-emotes .open, .pad-emotes.open')].length" , label: 'fan open'},
+  { label: 'emote fan', sim: 0.2, shot: 'r3-02-phone-emotes', page: true },
+  { js: "document.querySelector('.emote-fan [data-a=\"emote:wave\"]').click(); document.querySelector('.pad-emotes').classList.contains('open')", label: 'fan closed after wave? (false = closed)' },
+  { label: 'pilot to rapid', sim: 240, opts: { pilot: 'down', until: 'g.caller.rapid' } },
+  { label: 'in rapid', sim: 1.7, opts: { bot: 'none' } },
+  { label: 'phone rapid', frames: 1, shot: 'r3-03-phone-rapid', page: true },
+  { label: 'run rapid (bot perfect)', sim: 120, opts: { bot: 'perfect', until: '!g.caller.rapid' } },
+  { js: "(() => { const g = __f2, c = g.places.camps.find((k) => k.id === 'lookout'); g.shuttleTo(c); const b = g.boat; b.x = c.x + c.nx * 6; b.z = c.z + c.nz * 6; return g.places.campNear(b.x, b.z)?.name; })()", label: 'shuttle to Gorge Lookout' },
+  { label: 'settle', sim: 1 },
+  { label: 'at camp', frames: 1, shot: 'r3-04-phone-camp', page: true },
+  { js: "document.getElementById('p-camp')?.click(); !!__f2.walker.active", label: 'tap Go ashore' },
+  { js: press('forward', true) }, { label: 'walk hold ▲ (run after 0.9 s)', sim: 2, opts: {} }, { js: "__f2.input.shift", label: 'running?' }, { js: press('forward', false) },
+  { js: "(window.__w0 = [__f2.walker.x, __f2.walker.y + 1, __f2.walker.z], 'saved')", label: 'walker pos saved' },
+  { js: press('right', true) }, { label: 'walk ▶', sim: 1.2 }, { js: press('right', false) },
+  { frames: 1 }, { js: "(() => { const k = __f2.kit, w = __f2.walker, a = k.project(...window.__w0), b = k.project(w.x, w.y + 1, w.z); return { from: Math.round(a.x), to: Math.round(b.x), movedRight: b.x > a.x }; })()", label: 'walker moved right on screen?' },
+  { label: 'ashore phone', sim: 0.5, shot: 'r3-05-phone-ashore', page: true },
+]};

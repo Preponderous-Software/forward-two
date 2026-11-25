@@ -1,0 +1,101 @@
+{
+  "mpErrors": [],
+  "ctx_nocopy": {
+    "lost": true,
+    "before": {
+      "heapMB": 84.8,
+      "droppedMB": 90.8,
+      "stats": {
+        "primitives": 4,
+        "points": 5,
+        "lines": 0,
+        "lights": 1,
+        "terrain": 263169,
+        "quality": 0,
+        "width": 480,
+        "height": 270,
+        "frames": 2,
+        "pointsRejected": 0,
+        "meshes": 31,
+        "dpr": 1,
+        "dprCap": 2
+      }
+    },
+    "after": {
+      "restored": {
+        "refilled": 16,
+        "failed": 0,
+        "ms": 43173
+      },
+      "heapMB": 84.8,
+      "stats": {
+        "primitives": 4,
+        "points": 5,
+        "lines": 0,
+        "lights": 1,
+        "terrain": 263169,
+        "quality": 0,
+        "width": 480,
+        "height": 270,
+        "frames": 6,
+        "pointsRejected": 0,
+        "meshes": 31,
+        "dpr": 1,
+        "dprCap": 2
+      },
+      "fatal": false
+    },
+    "pageErrors": [],
+    "restoreWallMs": 43387,
+    "pixelsChangedPct": 4.14
+  },
+  "ctx_meshcopy": {
+    "lost": true,
+    "before": {
+      "heapMB": 175.9,
+      "droppedMB": 0,
+      "stats": {
+        "primitives": 4,
+        "points": 5,
+        "lines": 0,
+        "lights": 1,
+        "terrain": 263169,
+        "quality": 0,
+        "width": 480,
+        "height": 270,
+        "frames": 2,
+        "pointsRejected": 0,
+        "meshes": 31,
+        "dpr": 1,
+        "dprCap": 2
+      }
+    },
+    "after": {
+      "restored": {
+        "refilled": 0,
+        "failed": 0,
+        "ms": 35
+      },
+      "heapMB": 175.9,
+      "stats": {
+        "primitives": 4,
+        "points": 5,
+        "lines": 0,
+        "lights": 1,
+        "terrain": 263169,
+        "quality": 0,
+        "width": 480,
+        "height": 270,
+        "frames": 6,
+        "pointsRejected": 0,
+        "meshes": 31,
+        "dpr": 1,
+        "dprCap": 2
+      },
+      "fatal": false
+    },
+    "pageErrors": [],
+    "restoreWallMs": 481,
+    "pixelsChangedPct": 4.15
+  }
+}

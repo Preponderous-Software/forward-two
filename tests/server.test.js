@@ -16,7 +16,7 @@ let app, port, dataDir;
 
 before(async () => {
   dataDir = await mkdtemp(join(tmpdir(), "f2-server-test-"));
-  app = createApp({ data: dataDir, static: new URL("../web", import.meta.url).pathname, hub: { lobbyMs: 400, tickMs: 50 }, postsPerMin: 1000 });
+  app = createApp({ data: dataDir, static: new URL("../web", import.meta.url).pathname, hub: { lobbyMs: 400, tickMs: 50 }, postsPerMin: 1000, maxConnsPerIp: 1000 });
   port = await app.listen(0, "127.0.0.1");
 });
 
@@ -28,10 +28,10 @@ after(async () => {
 // ------------------------------------------------------------ raw client
 
 class RawClient {
-  static open(path = "/ws?seed=7") {
+  static open(path = "/ws?seed=7", p = port) {
     return new Promise((ok, fail) => {
       const key = randomBytes(16).toString("base64");
-      const sock = tcp(port, "127.0.0.1");
+      const sock = tcp(p, "127.0.0.1");
       const c = new RawClient(sock);
       let head = Buffer.alloc(0), upgraded = false;
       sock.on("error", fail);
@@ -48,7 +48,7 @@ class RawClient {
         if (rest.length) c.parser.push(rest);
         ok(c);
       });
-      sock.write(`GET ${path} HTTP/1.1\r\nHost: 127.0.0.1:${port}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${key}\r\nSec-WebSocket-Version: 13\r\n\r\n`);
+      sock.write(`GET ${path} HTTP/1.1\r\nHost: 127.0.0.1:${p}\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Key: ${key}\r\nSec-WebSocket-Version: 13\r\n\r\n`);
     });
   }
   constructor(sock) {
@@ -404,4 +404,193 @@ test("behind a proxy, the POST limit is per forwarded client, not per socket", a
   assert.notEqual(await post("2.2.2.2"), 429, "another client is not");
   await app.close();
   await rm(dir, { recursive: true, force: true });
+});
+
+// ------------------------------------------------------------ edge cases (robustness)
+
+async function withApp(opts, fn) {
+  const dir = await mkdtemp(join(tmpdir(), "f2-edge-"));
+  const a = createApp({ data: dir, hub: { lobbyMs: 300, tickMs: 50, ...(opts.hub || {}) }, ...opts, log: () => {} });
+  const p = await a.listen(0, "127.0.0.1");
+  try { await fn(p, a); } finally { await a.close(); await rm(dir, { recursive: true, force: true }); }
+}
+
+test("malformed messages are struck, never crash the relay, and others keep playing", T, async () => {
+  const a = await RawClient.open("/ws?seed=7&room=junk");
+  const b = await RawClient.open("/ws?seed=7&room=junk");
+  a.send({ t: "hello", name: "Junk" }); await a.next(type("welcome"));
+  b.send({ t: "hello", name: "Fine" }); await b.next(type("welcome"));
+  const junk = ["null", "[]", "42", '"str"', '{"t":5}', '{"t":"state"}', '{"t":"state","x":"1","z":1,"y":1,"h":0,"vx":0,"vz":0}',
+    '{"t":"state","x":1e308,"z":1,"y":1,"h":0,"vx":0,"vz":0}', '{"t":"race-finish","course":"x","ms":5}', '{"t":"race-ready","course":{"a":1}}',
+    '{"t":"emote","kind":"__proto__"}', '{"t":"hello","name":{"toString":1},"colour":"#zzzzzz","boat":"jet"}', '{"__proto__":{"t":"x"}}',
+    "[".repeat(1000) + "]".repeat(1000), '{"t":"time","c":"later"}', "{"];
+  for (const j of junk) a.raw(1, j);
+  const t = await a.next(type("time"));
+  assert.equal(t.c, 0, "a non-numeric clock is answered with 0");
+  // The relay is still alive for both.
+  b.send({ t: "emote", kind: "wave" });
+  assert.equal((await a.next(type("emote"))).kind, "wave");
+  assert.equal(a.closed, null, "a handful of bad messages is not enough to be cut");
+  const h = await fetch(`http://127.0.0.1:${port}/healthz`).then((r) => r.json());
+  assert.equal(h.ok, true);
+  a.end(); b.end();
+});
+
+test("invalid UTF-8 closes with 1007; a bad upgrade URL does not crash", T, async () => {
+  const a = await RawClient.open();
+  a.raw(1, Buffer.from([0xff, 0xfe, 0x7b]));
+  assert.equal(await a.waitClose(), 1007);
+  a.end();
+  const b = await RawClient.open("/ws?seed=%E0%A4%A&room=%");
+  b.send({ t: "hello", name: "Odd" });
+  const w = await b.next(type("welcome"));
+  assert.equal(w.room, "river");
+  b.end();
+  const h = await fetch(`http://127.0.0.1:${port}/healthz`);
+  assert.equal(h.status, 200);
+});
+
+test("a connection that never says hello is dropped", T, async () => {
+  await withApp({ hub: { helloMs: 150 } }, async (p) => {
+    const a = await RawClient.open("/ws", p);
+    a.send({ t: "time", c: 1 });
+    await a.next(type("time"));
+    assert.equal(await a.waitClose(3000), 1008);
+    a.end();
+    const b = await RawClient.open("/ws", p);
+    b.send({ t: "hello", name: "Quick" });
+    await b.next(type("welcome"));
+    await new Promise((r) => setTimeout(r, 400));
+    assert.equal(b.closed, null, "a paddler who said hello stays");
+    b.end();
+  });
+});
+
+test("connections are capped per client address and overall", T, async () => {
+  await withApp({ maxConnsPerIp: 2 }, async (p) => {
+    const a = await RawClient.open("/ws", p), b = await RawClient.open("/ws", p);
+    await assert.rejects(RawClient.open("/ws", p), /503/);
+    a.end();
+    await new Promise((r) => setTimeout(r, 100));
+    const c = await RawClient.open("/ws", p);  // a slot came free
+    b.end(); c.end();
+  });
+  await withApp({ maxConns: 1 }, async (p) => {
+    const a = await RawClient.open("/ws", p);
+    await assert.rejects(RawClient.open("/ws", p), /503/);
+    a.end();
+  });
+});
+
+test("the number of rooms is capped", T, async () => {
+  await withApp({ hub: { maxRooms: 2 } }, async (p) => {
+    const cs = [];
+    for (const room of ["a", "b"]) {
+      const c = await RawClient.open(`/ws?room=${room}`, p);
+      c.send({ t: "hello", name: room }); await c.next(type("welcome")); cs.push(c);
+    }
+    const x = await RawClient.open("/ws?room=c", p);
+    x.send({ t: "hello", name: "c" });
+    assert.equal((await x.next(type("error"))).code, "busy");
+    assert.equal(await x.waitClose(), 1013);
+    // Joining an existing room still works.
+    const y = await RawClient.open("/ws?room=a", p);
+    y.send({ t: "hello", name: "a2" }); await y.next(type("welcome"));
+    for (const c of [...cs, x, y]) c.end();
+  });
+});
+
+test("races only on known courses, and open lobbies per room are capped", T, async () => {
+  await withApp({ courses: { "real-course": {} }, hub: { maxRaces: 2, lobbyMs: 60_000 } }, async (p) => {
+    const a = await RawClient.open("/ws?room=r", p);
+    a.send({ t: "hello", name: "Racer" }); await a.next(type("welcome"));
+    a.send({ t: "race-ready", course: "made-up" });
+    a.send({ t: "race-ready", course: "real-course" });
+    const lob = await a.next(type("race-lobby"));
+    assert.equal(lob.course, "real-course");
+    assert.equal(a.inbox.filter((m) => m.course === "made-up").length, 0);
+    a.end();
+  });
+  await withApp({ hub: { maxRaces: 2, lobbyMs: 60_000 } }, async (p) => {
+    const a = await RawClient.open("/ws?room=r", p);
+    a.send({ t: "hello", name: "Racer" }); await a.next(type("welcome"));
+    for (const c of ["c1", "c2", "c3"]) a.send({ t: "race-ready", course: c });
+    await a.next(type("race-lobby", (m) => m.course === "c2"));
+    const busy = await a.next(type("race-busy"));
+    assert.equal(busy.course, "c3");
+    a.end();
+  });
+});
+
+test("Net client reconnects with backoff after the relay restarts", T, async () => {
+  const { Net, serverUrls } = await import("../web/src/net/net.js");
+  const dir = await mkdtemp(join(tmpdir(), "f2-reconnect-"));
+  let a = createApp({ data: dir, log: () => {} });
+  const p = await a.listen(0, "127.0.0.1");
+  const g = { world: { seed: 3 }, time: 0, boat: { x: 100, z: 100, y: 1, heading: 0, vx: 0, vz: 0, kind: "raft", swimming: false, spec: { colour: [1, 0, 0] } } };
+  const n = new Net(g);
+  n.urls = serverUrls(`http://127.0.0.1:${p}`); n.room = "rc";
+  const events = [];
+  for (const e of ["online", "offline"]) n.on(e, () => events.push(e));
+  const until = async (cond, ms = 15_000) => {
+    const t0 = Date.now();
+    while (!cond()) { if (Date.now() - t0 > ms) throw new Error("condition timed out"); n.tick(0.05); await new Promise((r) => setTimeout(r, 25)); }
+  };
+  try {
+    n.connect();
+    await until(() => n.online);
+    await a.close();
+    await until(() => !n.online);
+    assert.ok(n.retryAt > Date.now() - 50, "a retry is scheduled");
+    // A few failed attempts grow the backoff (capped).
+    n.backoff = 1000; n.retryAt = Date.now();
+    await until(() => n.backoff >= 2000);
+    a = createApp({ data: dir, log: () => {} });
+    await a.listen(p, "127.0.0.1");
+    n.retryAt = Date.now();   // as a "visible again" / "online" event does
+    await until(() => n.online);
+    assert.deepEqual(events.slice(0, 3), ["online", "offline", "online"]);
+    assert.equal(n.backoff, 1000, "a welcome resets the backoff");
+  } finally { n.disconnect(); await a.close(); await rm(dir, { recursive: true, force: true }); }
+});
+
+test("GhostStore keeps a corrupt board file aside instead of overwriting it", async () => {
+  const { GhostStore } = await import("../server/ghosts.js");
+  const { writeFile, readdir } = await import("node:fs/promises");
+  const dir = await mkdtemp(join(tmpdir(), "f2-ghost-corrupt-"));
+  try {
+    const s1 = new GhostStore(dir); await s1.ready;
+    await writeFile(join(dir, "ghosts", "c1.json"), "[{\"name\":\"A\",\"ms\":5000,");
+    const s = new GhostStore(dir);
+    assert.deepEqual(await s.board("c1"), []);
+    const files = await readdir(join(dir, "ghosts"));
+    assert.ok(files.some((f) => f.startsWith("c1.json.corrupt-")), files.join(","));
+    const r = await s.submit("c1", { name: "B", ms: 5100, ghost: encode(run(51)) });
+    assert.equal(r.ok, true);
+    assert.equal((await s.board("c1")).length, 1);
+  } finally { await rm(dir, { recursive: true, force: true }); }
+});
+
+test("runs queued while offline go to the board when the client reconnects", T, async () => {
+  const { Net, serverUrls, QUEUE_KEY } = await import("../web/src/net/net.js");
+  const mem = new Map();
+  globalThis.localStorage = { getItem: (k) => mem.get(k) ?? null, setItem: (k, v) => mem.set(k, String(v)), removeItem: (k) => mem.delete(k) };
+  const g = { world: { seed: 12 }, time: 0, boat: { x: 100, z: 100, y: 1, heading: 0, vx: 0, vz: 0, kind: "raft", swimming: false, spec: { colour: [1, 0, 0] } } };
+  const n = new Net(g);
+  try {
+    n.urls = serverUrls("http://127.0.0.1:9");     // the relay is down
+    const ghost = encode(run(51));
+    const r = await n.submitGhost("queued-course", { name: "Teal 12", ms: 5000, ghost });
+    assert.equal(r.queued, true);
+    n.queueGhost({ course: "BAD COURSE", name: "x", ms: 1, ghost, at: Date.now() });  // junk is never sent
+    localStorage.setItem(QUEUE_KEY, JSON.stringify([...JSON.parse(mem.get(QUEUE_KEY)), { course: "bad-run", name: "x", ms: 5000, ghost: "AAAA", at: Date.now() }]));
+    n.urls = serverUrls(`http://127.0.0.1:${port}`); n.room = "queue";
+    const sent = new Promise((ok) => n.on("ghosts-sent", ok));
+    n.connect();
+    const e = await sent;
+    assert.equal(e.n, 1);
+    const board = await fetch(`http://127.0.0.1:${port}/api/board/queued-course`).then((x) => x.json());
+    assert.deepEqual(board.board.map((b) => [b.name, b.ms]), [["Teal 12", 5000]]);
+    assert.deepEqual(n.queued(), [], "the sent run and the refused one are both gone");
+  } finally { n.disconnect(); delete globalThis.localStorage; }
 });

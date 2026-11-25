@@ -268,7 +268,7 @@ export class Audio {
       const t = this.ctx.currentTime;
       if (j === "perfect") { this._tone(t, 1046.5, 0.35, 0.16); this._tone(t + 0.07, 1568, 0.45, 0.13); }
       else if (j === "good") this._tone(t, 1046.5, 0.3, 0.13);
-      else if (j === "late") this._tone(t, 784, 0.22, 0.08);
+      else if (j === "late" || j === "early") this._tone(t, 784, 0.22, 0.08);
       else if (j === "miss" || j === "wrong") {
         const o = this._tone(t, 120, 0.22, 0.3, "triangle");
         o.frequency.setValueAtTime(120, t); o.frequency.exponentialRampToValueAtTime(70, t + 0.2);

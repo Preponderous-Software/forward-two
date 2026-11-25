@@ -13,6 +13,10 @@ const { chromium } = require('playwright');
   await page.waitForFunction(() => window.__f2 && window.__f2.kit, null, { timeout: 300000, polling: 1000 });
   if (js) await page.evaluate(js).catch((e) => logs.push('setup: ' + e.message));
   await page.evaluate((n) => { const k = window.__f2.kit; let t = (window.__shotT || 0); for (let i = 0; i < n; i++) { t += 1 / 30; k.drive(t); } window.__shotT = t; }, +frames);
+  // The game catches exceptions in its frame so play carries on; report them
+  // as page errors so CI's boot check still fails on them.
+  const frameErrors = await page.evaluate(() => (window.__f2.frameMeter && window.__f2.frameMeter.errors) || 0);
+  if (frameErrors) logs.push(`[pageerror] ${frameErrors} frame(s) threw (see the console errors above)`);
   const data = await page.evaluate(() => document.getElementById('view').toDataURL('image/png'));
   require('fs').writeFileSync(out, Buffer.from(data.split(',')[1], 'base64'));
   if (process.env.SHOT_PAGE) await page.screenshot({ path: out.replace(/\.png$/, '-page.png'), timeout: 120000 }).catch((e) => logs.push('page shot: ' + e.message));

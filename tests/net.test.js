@@ -237,3 +237,114 @@ test("Others draws remote boats, ghosts and emotes within the slot budget", () =
   o.clearGhosts();
   assert.equal(o.owned.size, 16);
 });
+
+// ------------------------------------------------------------ client robustness (fake socket)
+
+class FakeWs {
+  static all = [];
+  constructor(url) { this.url = url; this.readyState = 0; this.sent = []; FakeWs.all.push(this); }
+  send(t) { this.sent.push(JSON.parse(t)); }
+  close() { this.readyState = 3; }
+  open() { this.readyState = 1; this.onopen?.(); }
+  msg(data) { this.onmessage?.({ data: typeof data === "string" ? data : JSON.stringify(data) }); }
+  drop(code = 1006) { this.readyState = 3; this.onclose?.({ code }); }
+}
+
+function withFakeWs(fn) {
+  const had = globalThis.WebSocket;
+  globalThis.WebSocket = FakeWs; FakeWs.all = [];
+  try { return fn(); } finally { globalThis.WebSocket = had; }
+}
+
+const netGame = () => ({ world: { seed: 5 }, time: 0, boat: { x: 10, z: 10, y: 1, heading: 0, vx: 0, vz: 0, kind: "raft", swimming: false, spec: { colour: [1, 0, 0] } } });
+function onlineNet() {
+  const n = new Net(netGame());
+  n.urls = serverUrls("http://relay.test");
+  n.connect();
+  const ws = FakeWs.all.at(-1);
+  ws.open();
+  ws.msg({ t: "welcome", id: 1, now: Date.now(), players: [], races: [] });
+  return { n, ws };
+}
+
+test("Net ignores malformed relay messages without throwing", () => withFakeWs(() => {
+  const { n, ws } = onlineNet();
+  assert.equal(n.online, true);
+  const junk = ["null", "[]", "5", '"x"', "{", "{}", '{"t":7}', { t: "welcome" }, { t: "join" }, { t: "join", id: "2" },
+    { t: "states" }, { t: "states", at: 1, list: "nope" }, { t: "states", at: NaN, list: [] }, { t: "states", at: 5, list: [null, 3, { id: 9 }] },
+    { t: "leave" }, { t: "emote", kind: "shout", id: 2 }, { t: "race-lobby" }, { t: "race-lobby", course: 7, at: 1 },
+    { t: "race-start", course: "c", at: 1 }, { t: "race-results", course: "c" }, { t: "time", c: "x", s: 1 }, { t: "unknown" }];
+  for (const j of junk) assert.doesNotThrow(() => ws.msg(j), JSON.stringify(j));
+  assert.equal(n.online, true);
+  assert.equal(n.id, 1, "a bad welcome does not change who we are");
+  assert.equal(n.races.size, 0);
+  // A join with junk fields is cleaned; NaN states are dropped.
+  ws.msg({ t: "join", id: 2, name: "<script>".repeat(5), colour: [9, 9, 9], boat: "tank" });
+  const p = n.players.get(2);
+  assert.deepEqual([p.name, p.boat], ["Paddler", "raft"]);
+  assert.ok(p.colour.every((v) => v >= 0 && v <= 1));
+  ws.msg({ t: "states", at: 100, list: [{ id: 2, x: NaN, z: 1, y: 1, h: 0 }] });
+  assert.equal(p.samples.length, 0);
+  ws.msg({ t: "states", at: 200, list: [{ id: 2, x: 5, z: 1, y: 1, h: 0, boat: "kayak" }] });
+  assert.equal(p.samples.length, 1);
+  assert.equal(p.samples[0].vx, 0);
+  assert.equal(p.boat, "kayak");
+}));
+
+test("Net: a throwing handler does not break message handling", () => withFakeWs(() => {
+  const { n, ws } = onlineNet();
+  let got = 0;
+  n.on("join", () => { throw new Error("ui bug"); });
+  n.on("join", () => got++);
+  ws.msg({ t: "join", id: 3, name: "A" });
+  assert.equal(got, 1);
+}));
+
+test("Net gives up on a connection that never opens, then retries", async () => {
+  await withFakeWs(async () => {
+    const realSet = globalThis.setTimeout;
+    const timers = [];
+    globalThis.setTimeout = (f, ms) => { timers.push({ f, ms }); return timers.length; };
+    try {
+      const n = new Net(netGame());
+      n.urls = serverUrls("http://relay.test");
+      n.connect();
+      const ws = FakeWs.all[0];
+      const t = timers.find((x) => x.ms === 8000);
+      assert.ok(t, "a connect timeout is armed");
+      t.f();
+      assert.equal(n.ws, null);
+      assert.ok(n.retryAt > 0);
+      // A late close from the abandoned socket changes nothing.
+      const before = n.retryAt; ws.drop();
+      assert.equal(n.retryAt, before);
+      n.retryAt = Date.now() - 1; n.tick(0.1);
+      assert.equal(FakeWs.all.length, 2, "tick reconnects once the backoff has passed");
+    } finally { globalThis.setTimeout = realSet; }
+  });
+});
+
+test("Net backoff: doubles with jitter, caps at 30 s, is long after full/rate-limit closes, resets on welcome", () => withFakeWs(() => {
+  const { n, ws } = onlineNet();
+  const offline = [];
+  n.on("offline", (e) => offline.push(e.code));
+  ws.drop(1006);
+  assert.equal(n.online, false);
+  assert.deepEqual(offline, [1006]);
+  assert.equal(n.players.size, 0);
+  for (let i = 0; i < 10; i++) { n.connect(); FakeWs.all.at(-1).drop(1006); }
+  assert.equal(n.backoff, 30_000);
+  assert.ok(n.retryAt - Date.now() <= 30_000 * 1.25 + 50);
+  n.connect(); const w2 = FakeWs.all.at(-1); w2.open();
+  w2.msg({ t: "welcome", id: 4, now: Date.now() });
+  assert.equal(n.backoff, 1000);
+  w2.msg({ t: "error", code: "full" }); w2.drop(1013);
+  assert.ok(n.backoff >= 30_000, `backoff ${n.backoff}`);
+  // retrySoon (page visible again / device online) pulls the retry forward.
+  n.retrySoon();
+  assert.ok(n.retryAt <= Date.now() + 250);
+  // disconnect() is final: no retry is scheduled.
+  n.disconnect();
+  n.retryAt = 0; n.tick(1);
+  assert.equal(n.ws, null);
+}));

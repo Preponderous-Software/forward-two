@@ -1,0 +1,69 @@
+{
+ "mode": "old",
+ "toasts": [
+  "Your journal caught up: 5 of Wren's letters and 0 new feats."
+ ],
+ "state": {
+  "pay": 252,
+  "rank": 2,
+  "claimed": [
+   "first-water",
+   "honest-work",
+   "brightwater",
+   "gorge",
+   "mirror"
+  ],
+  "goal": "→ Wren's letter: Find Coldwater Mill and the Hot Spring, up the Coldwater from the lake.",
+  "feats": [
+   "first-rapid",
+   "swim",
+   "courier"
+  ]
+ },
+ "shotErrors": [
+  "docs/playtests/0.2.0/content/r1/01-hud.jpg: page.screenshot: Timeout 150000ms exceeded.",
+  "docs/playtests/0.2.0/content/r1/02-journal.jpg: page.screenshot: Timeout 150000ms exceeded.",
+  "docs/playtests/0.2.0/content/r1/06-find-card.jpg: page.screenshot: Timeout 150000ms exceeded."
+ ],
+ "journal": "Close\nRiver Journal\n\n6 of 18 places · 3 of 26 feats · 252 pay · 6 deliveries\n\nWHAT NEXT\nWren's letter: Find Coldwater Mill and the Hot Spring, up the Coldwater from the lake.\nYou can afford Patch Kit (40 pay) at any camp.\n34 standing to River Hand: Survey jobs, a fourth job on every board, and the Spray Deck.\nSTANDING: PADDLER\n\n46 standing · 34 more for River Hand: Survey jobs, a fourth job on every board, and the Spray Deck.. Places, feats, deliveries, medals and finds all count.\n\nWREN'S LETTERS 5 OF 11\n1. The Fork done\n2. Honest Work done\n3. Up the Brightwater done\n4. Scout the Gorge done\n5. Across the Mirror done\n6. The Cold Valley now\n\nAbel keeps the mill on the Coldwater. Tell him the light still turns. Soak in the hot spring on the way; you'll have earned it. — W.\n\nGoal: Find Coldwater Mill and the Hot Spring, up the Coldwater from the lake.\n\nRIVER FINDS 0 OF 12\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\nPLACES\nMeadow Fork\nWhere the Brightwater meets the Long Water. Everyone starts here.\n?\nUnknown\nBrightwater Lodge\nLog lodge, warm stove, cold creek.\nGorge Lookout\nLast flat water before the gorge. Scout it from here.\nMirror Dock\nA long dock on the east shore of Mirror Lake.\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\n?\nUnknown\nSunken Bridge\nStone piers of a bridge the river took long ago.\n?\nUnknown\nLone Pine Isle\nOne pine on one rock in the middle of Mirror Lake.\n?\nUnknown\n?\nUnknown\n?\nUnknown\nFEATS\nFirst Rapid\nRun any rapid.\n?\nClean Line\nRun a class III+ rapid with no misses.\n?\nThrough the Throat\nRun the Throat without swimming.\n?\nOver the Falls\nGo over the High Falls in your boat.\nSwimmer\nSwim a rapid. Everyone does.\n?\nIn the Line\nFill the flow meter.\n?\nNight Paddler\nPaddle for two minutes after dark.\n?\nEvery Camp\nVisit all eight camps.\n?\nCartographer\nFind every landmark.\nCourier\nDeliver five loads.\n?\nGold Medal\nWin gold on any race course.\n?\nSource to Sea\nReach the sea after starting at Tarn Spring.\n?\nGentle Hands\nDeliver a fragile load on time without a scratch.\n?\nAgainst the Current\nDeliver an upstream load on time.\n?\nBeat the Clock\nDeliver a rush job on time.\n?\nLantern Run\nFinish a job on time after dark.\n?\nFerryman\nGet a passenger to their stop on time and happy.\n?\nSurveyor\nSketch a landmark and bring it back.\n?\nThree Rivers\nPaddle the Long Water, the Brightwater and the Coldwater.\n?\nFull Fleet\nOwn all four boats.\n?\nWell Kitted\nFit every piece of gear.\n?\nThe Long Way Down\nFinish the Descent race.\n?\nOn the Podium\nWin a medal on every race course.\n?\nGolden Water\nWin gold on every race course.\n?\nBeachcomber\nPick up every river find.\n?\nKeeper of the Long Water\nFinish Wren's letters.\nRACES\nMeadow Sprint 507 m · gold 3:15.0\n50.0 s silver\nBrightwater Chutes 606 m · gold 3:09.4\nnot run\nThroat Run 648 m · gold 2:46.2\nnot run\nColdwater Run 915 m · gold 5:05.0\nnot run\nFerry Dash 525 m · gold 2:39.1\nnot run\nThe Descent 3936 m · gold 22:37.2\nnot run",
+ "map": "Close\nThe Long Water\n\n6 places found. Fog lifts where you've paddled.\n\n● camp · ● landmark · ⚑ race start · ◆ river find · ◌ Wren's next letter",
+ "camp-gear": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\n\nGear fits every boat you own. You are a Paddler with 252 pay.\n\nPatch Kit\n40 pay\nYour hull takes 30% less damage.\nDry Bags\n60 pay\nFragile loads lose half as much in a hit, and a swim no longer sinks them.\nLong Paddle\n90 pay\nEvery stroke pulls 8% harder.\nChart Case\n70 pay\nMarks places you haven't found yet on the map, and the finds you've missed.\nSpray Deck\nfor a River Hand\n15% steadier in rough water.",
+ "camp-jobs": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\nrope coils to Brightwater Lodge 708 mupstream\n9 hours · 80 pay\nTake\nRush medicine to Coldwater Mill 667 mrushfragile\n3 hours · 90 pay\nTake\nTake a travelling fiddler to Sunken Bridge 328 mpassenger\n5 hours · 45 pay\nTake",
+ "camp-shuttle": "Push off\nMeadow Fork\nCamp\nBoats\nGear\nJobs\nShuttle\n\nThe shuttle truck drives you and your boat to any camp you've found. It takes a few hours.\n\nBrightwater Lodge\nGo\nGorge Lookout\nGo\nMirror Dock\nGo\nColdwater Mill Wren's letter\nGo",
+ "cardpop": [
+  "RIVER FIND\nA Carved Paddle Blade\nHerons carved down the shaft. Snapped clean at the throat."
+ ],
+ "bought": [
+  "patch-kit"
+ ],
+ "after": {
+  "finds": [
+   "blade"
+  ],
+  "pay": 222
+ },
+ "savedProgress": {
+  "gear": [
+   "patch-kit"
+  ],
+  "chapters": [
+   "first-water",
+   "honest-work",
+   "brightwater",
+   "gorge",
+   "mirror"
+  ],
+  "finds": [
+   "blade"
+  ],
+  "rivers": [
+   "long"
+  ],
+  "rank": 2
+ },
+ "savedDay": 0,
+ "logs": [
+  "[error] Failed to load resource: the server responded with a status of 404 (File not found)",
+  "[error] strata info: host-context surface, WebGL 2: WebKit WebGL | OpenGL ES 3.0 (WebGL 2.0 (OpenGL ES 3.0 Chromium))"
+ ]
+}
